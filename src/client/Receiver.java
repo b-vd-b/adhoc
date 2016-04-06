@@ -1,7 +1,6 @@
 package client;
 
-import datatype.BroadcastMessage;
-import datatype.Packet;
+import datatype.*;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -29,12 +28,13 @@ public class Receiver implements Runnable {
                 socket.receive(datagramPacket);
 
                 Packet packet = new Packet(buffer);
+                Message message = packet.getPayload();
 
-                if (packet.getPayload() instanceof BroadcastMessage) {
+                if (message instanceof BroadcastMessage) {
                     // TODO: Implement neighbour saving.
                 }
 
-                if (packet.getDestinationAddress().toString().equals(Inet4Address.getLocalHost().getHostAddress())) {
+                if (packet.getDestinationAddress().equals(Inet4Address.getLocalHost())) {
                     parsePacket(packet);
                 } else {
                     packet.decreaseTimeToLive();
@@ -48,7 +48,16 @@ public class Receiver implements Runnable {
     }
 
     public void parsePacket(Packet packet) {
-        // TODO: Add Packet parsing.
+        // TODO: Add payload parsing.
+        Message message = packet.getPayload();
+
+        if (message instanceof TextMessage) {
+            System.out.println(((TextMessage) message).getMessage());
+        }
+    }
+
+    public void acknowledgePacket(Packet packet) {
+        // TODO: Add acknowledgement packet generation.
     }
 
     public void stopReceiver() {

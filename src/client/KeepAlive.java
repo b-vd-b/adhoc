@@ -45,7 +45,7 @@ public class KeepAlive implements Runnable {
     public DatagramPacket makeBroadcastPacket() {
         Packet packet = null;
         try {
-            packet = new Packet(Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname));
+            packet = new Packet(Inet4Address.getLocalHost(), Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname));
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }

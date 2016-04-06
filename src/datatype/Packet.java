@@ -7,11 +7,13 @@ import java.util.Arrays;
 
 public class Packet {
 
+    private InetAddress destinationAddress;
     private long sequenceNumber;
     private int timeToLive;
     private Message payload;
 
-    public Packet(long sequenceNumber, int timeToLive, Message payload) {
+    public Packet(InetAddress destinationAddress, long sequenceNumber, int timeToLive, Message payload) {
+        this.destinationAddress = destinationAddress;
         this.sequenceNumber = sequenceNumber;
         this.timeToLive = timeToLive;
         this.payload = payload;
@@ -24,6 +26,10 @@ public class Packet {
         this.sequenceNumber = packet.getSequenceNumber();
         this.timeToLive = packet.getTimeToLive();
         this.payload = packet.getPayload();
+    }
+
+    public InetAddress getDestinationAddress() {
+        return destinationAddress;
     }
 
     public long getSequenceNumber() {

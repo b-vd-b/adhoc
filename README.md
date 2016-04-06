@@ -1,1 +1,1 @@
-# WiFi-based multi-hop adhod chat application
+# WiFi-based multi-hop adhoc chat application

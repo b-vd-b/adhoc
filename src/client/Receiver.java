@@ -16,6 +16,7 @@ public class Receiver implements Runnable {
     private MulticastSocket socket;
 
     public Receiver(Client client, Sender sender, MulticastSocket socket) throws IOException {
+        this.client = client;
         this.sender = sender;
         this.socket = socket;
     }

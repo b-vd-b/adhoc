@@ -5,7 +5,6 @@ import client.Client;
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 
 public class Packet implements Serializable {
@@ -59,7 +58,7 @@ public class Packet implements Serializable {
         timeToLive--;
     }
 
-    public DatagramPacket makeDatagramPacket(InetAddress address, int port) throws IOException {
+    public DatagramPacket makeDatagramPacket() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);
         out.writeObject(this);

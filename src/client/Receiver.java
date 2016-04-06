@@ -7,7 +7,7 @@ import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.MulticastSocket;
 
-public class Receiver implements Runnable {
+class Receiver implements Runnable {
 
     private boolean running = true;
 
@@ -15,7 +15,7 @@ public class Receiver implements Runnable {
     private Sender sender;
     private MulticastSocket socket;
 
-    public Receiver(Client client, Sender sender, MulticastSocket socket) throws IOException {
+    Receiver(Client client, Sender sender, MulticastSocket socket) throws IOException {
         this.client = client;
         this.sender = sender;
         this.socket = socket;
@@ -23,7 +23,7 @@ public class Receiver implements Runnable {
 
     @Override
     public void run() {
-        if (running) {
+        while (running) {
             try {
                 byte[] buffer = new byte[4096];
                 DatagramPacket datagramPacket = new DatagramPacket(buffer, buffer.length);
@@ -40,7 +40,7 @@ public class Receiver implements Runnable {
                     parsePacket(packet);
                 } else {
                     packet.decreaseTimeToLive();
-                    sender.sendPkt(packet.makeDatagramPacket(socket.getInetAddress(), socket.getPort()));
+                    sender.sendPkt(packet.makeDatagramPacket());
                 }
 
             } catch (IOException | ClassNotFoundException e) {
@@ -49,7 +49,7 @@ public class Receiver implements Runnable {
         }
     }
 
-    public void parsePacket(Packet packet) throws IOException {
+    private void parsePacket(Packet packet) throws IOException {
         // TODO: Add payload parsing.
         Message message = packet.getPayload();
 
@@ -59,14 +59,14 @@ public class Receiver implements Runnable {
         }
     }
 
-    public void acknowledgePacket(Packet packet) throws IOException {
+    private void acknowledgePacket(Packet packet) throws IOException {
         // TODO: Add acknowledgement number calculation.
         long sequenceNumber = packet.getSequenceNumber();
         long acknowledgementNumber = packet.getSequenceNumber() + 1;
         Message message = new AckMessage(acknowledgementNumber);
         Packet acknowledgementPacket = new Packet(packet.getSourceAddress(), packet.getDestinationAddress(), sequenceNumber, 3, message);
 
-        sender.sendPkt(acknowledgementPacket.makeDatagramPacket(socket.getInetAddress(), socket.getPort()));
+        sender.sendPkt(acknowledgementPacket.makeDatagramPacket());
     }
 
     public void stopReceiver() {

@@ -42,6 +42,6 @@ public class KeepAlive implements Runnable {
 
     public DatagramPacket makeBroadcastPacket() throws IOException {
         Packet packet = new Packet(Inet4Address.getLocalHost(), Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname));
-        return packet.makeDatagramPacket(mcSocket.getInetAddress(), mcSocket.getLocalPort());
+        return packet.makeDatagramPacket();
     }
 }

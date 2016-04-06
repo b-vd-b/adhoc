@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Client {
 
-    public static final String INETADDRESS= "224.1.1.1";
+    public static final String INETADDRESS = "228.1.1.1";
     public static final int PORT = 6789;
 
     private String nickname;
@@ -29,7 +29,7 @@ public class Client {
 
     public Client(String nickname) {
         this.nickname = nickname;
-        InetAddress group = null;
+        InetAddress group;
         try {
             group = InetAddress.getByName(INETADDRESS);
             mcSocket = new MulticastSocket(PORT);

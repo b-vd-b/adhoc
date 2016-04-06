@@ -21,9 +21,9 @@ public class Sender {
 
     //METHODS
 
-    public void sendMsg(Message msg, long sqnr, int ttl, InetAddress address, int port) throws IOException {
+    public void sendMessage(Message msg, long sqnr, int ttl, InetAddress address, int port) throws IOException {
         Packet pkt = new Packet(null, null, 0, 0, msg);
-        DatagramPacket dgp = pkt.makeDatagramPacket(address, port);
+        DatagramPacket dgp = pkt.makeDatagramPacket();
         try {
             msc.send(dgp);
         } catch (IOException e) {

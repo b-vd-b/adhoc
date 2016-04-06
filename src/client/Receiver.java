@@ -53,11 +53,18 @@ public class Receiver implements Runnable {
 
         if (message instanceof TextMessage) {
             System.out.println(((TextMessage) message).getMessage());
+            acknowledgePacket(packet);
         }
     }
 
     public void acknowledgePacket(Packet packet) {
-        // TODO: Add acknowledgement packet generation.
+        // TODO: Add acknowledgement number calculation.
+        long sequenceNumber = packet.getSequenceNumber();
+        long acknowledgementNumber = packet.getSequenceNumber() + 1;
+        Message message = new AckMessage(acknowledgementNumber);
+        Packet acknowledgementPacket = new Packet(packet.getSourceAddress(), packet.getDestinationAddress(), sequenceNumber, 3, message);
+
+        // TODO: Send packet acknowledgement.
     }
 
     public void stopReceiver() {

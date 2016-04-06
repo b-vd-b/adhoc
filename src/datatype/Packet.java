@@ -1,8 +1,11 @@
 package datatype;
 
+import client.Client;
+
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
 public class Packet implements Serializable {
@@ -25,6 +28,8 @@ public class Packet implements Serializable {
         ByteArrayInputStream in = new ByteArrayInputStream(data);
         ObjectInputStream is = new ObjectInputStream(in);
         Packet packet = (Packet) is.readObject();
+        this.sourceAddress = packet.getSourceAddress();
+        this.destinationAddress = packet.getDestinationAddress();
         this.sequenceNumber = packet.getSequenceNumber();
         this.timeToLive = packet.getTimeToLive();
         this.payload = packet.getPayload();
@@ -54,19 +59,13 @@ public class Packet implements Serializable {
         timeToLive--;
     }
 
-    public DatagramPacket makeDatagramPacket(InetAddress address, int port) {
+    public DatagramPacket makeDatagramPacket(InetAddress address, int port) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutput out;
-        byte[] buf = new byte[0];
-        try {
-            out = new ObjectOutputStream(bos);
-            out.writeObject(this);
-            buf = Arrays.copyOf(bos.toByteArray(),bos.toByteArray().length);
-            out.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
+        ObjectOutput out = new ObjectOutputStream(bos);
+        out.writeObject(this);
+        byte[] buf = Arrays.copyOf(bos.toByteArray(),bos.toByteArray().length);
+        out.close();
 
-        return new DatagramPacket(buf,buf.length,address,port);
+        return new DatagramPacket(buf, buf.length, InetAddress.getByName(Client.INETADDRESS), Client.PORT);
     }
 }

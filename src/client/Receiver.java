@@ -49,7 +49,7 @@ public class Receiver implements Runnable {
         }
     }
 
-    public void parsePacket(Packet packet) {
+    public void parsePacket(Packet packet) throws IOException {
         // TODO: Add payload parsing.
         Message message = packet.getPayload();
 
@@ -59,7 +59,7 @@ public class Receiver implements Runnable {
         }
     }
 
-    public void acknowledgePacket(Packet packet) {
+    public void acknowledgePacket(Packet packet) throws IOException {
         // TODO: Add acknowledgement number calculation.
         long sequenceNumber = packet.getSequenceNumber();
         long acknowledgementNumber = packet.getSequenceNumber() + 1;

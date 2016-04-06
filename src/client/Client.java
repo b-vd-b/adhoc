@@ -12,8 +12,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Client {
 
-    private static final String INETADDRESS= "224.1.1.1";
-    private static final int PORT = 6789;
+    public static final String INETADDRESS= "224.1.1.1";
+    public static final int PORT = 6789;
 
     private String nickname;
     protected HashMap<InetAddress, String> ipToNicknames = new HashMap<>();

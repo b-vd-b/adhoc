@@ -1,14 +1,12 @@
 package client;
 
 import datatype.BroadcastMessage;
-import datatype.Message;
 import datatype.Packet;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.MulticastSocket;
-import java.net.UnknownHostException;
 
 public class KeepAlive implements Runnable {
 
@@ -31,7 +29,7 @@ public class KeepAlive implements Runnable {
         while (running) {
             try {
                 mcSocket.send(makeBroadcastPacket());
-                this.wait(SLEEP);
+                Thread.sleep(SLEEP);
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
@@ -42,13 +40,8 @@ public class KeepAlive implements Runnable {
         running = false;
     }
 
-    public DatagramPacket makeBroadcastPacket() {
-        Packet packet = null;
-        try {
-            packet = new Packet(Inet4Address.getLocalHost(), Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname));
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        return packet.makeDatagramPacket(mcSocket.getInetAddress(), mcSocket.getPort());
+    public DatagramPacket makeBroadcastPacket() throws IOException {
+        Packet packet = new Packet(Inet4Address.getLocalHost(), Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname));
+        return packet.makeDatagramPacket(mcSocket.getInetAddress(), mcSocket.getLocalPort());
     }
 }

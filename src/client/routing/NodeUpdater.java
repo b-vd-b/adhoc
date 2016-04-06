@@ -16,7 +16,7 @@ public class NodeUpdater implements Runnable {
         while (running) {
             for (int i = 0; i < 3; i++) {
                 try {
-                    this.wait(2000);
+                    Thread.sleep(2000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

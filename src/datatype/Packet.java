@@ -5,7 +5,7 @@ import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.Arrays;
 
-public class Packet {
+public class Packet implements Serializable {
 
     private InetAddress sourceAddress;
     private InetAddress destinationAddress;

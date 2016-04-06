@@ -28,8 +28,8 @@ public class KeepAlive implements Runnable {
     public void run() {
         while (running) {
             try {
-                this.wait(SLEEP);
                 mcSocket.send(makeBroadcastPacket());
+                this.wait(SLEEP);
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }

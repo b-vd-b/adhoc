@@ -22,7 +22,7 @@ public class Sender {
     //METHODS
 
     public void sendMsg(Message msg, long sqnr, int ttl, InetAddress address, int port) {
-        Packet pkt = new Packet(sqnr,ttl,msg);
+        Packet pkt = new Packet(null, 0, 0, msg);
         DatagramPacket dgp = pkt.makeDatagramPacket(address, port);
         try {
             msc.send(dgp);

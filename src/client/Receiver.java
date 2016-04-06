@@ -5,15 +5,18 @@ import datatype.Packet;
 
 import java.io.*;
 import java.net.DatagramPacket;
+import java.net.Inet4Address;
 import java.net.MulticastSocket;
 
 public class Receiver implements Runnable {
 
     private boolean running = true;
 
+    private Sender sender;
     private MulticastSocket socket;
 
-    public Receiver(MulticastSocket socket) throws IOException {
+    public Receiver(Sender sender, MulticastSocket socket) throws IOException {
+        this.sender = sender;
         this.socket = socket;
     }
 
@@ -31,16 +34,21 @@ public class Receiver implements Runnable {
                     // TODO: Implement neighbour saving.
                 }
 
-                if (datagramPacket.getSocketAddress().equals(socket.getLocalSocketAddress())) {
-                    // TODO: Parse packet payload.
+                if (packet.getDestinationAddress().toString().equals(Inet4Address.getLocalHost().getHostAddress())) {
+                    parsePacket(packet);
                 } else {
-                    // TODO: Retransmit packet.
+                    packet.decreaseTimeToLive();
+                    sender.sendPkt(packet.makeDatagramPacket(socket.getInetAddress(), socket.getPort()));
                 }
 
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void parsePacket(Packet packet) {
+        // TODO: Add Packet parsing.
     }
 
     public void stopReceiver() {

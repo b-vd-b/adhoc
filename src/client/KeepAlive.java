@@ -1,5 +1,9 @@
 package client;
 
+import datatype.BroadcastMessage;
+import datatype.Message;
+import datatype.Packet;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
@@ -9,28 +13,15 @@ public class KeepAlive implements Runnable {
     private boolean running = true;
     private MulticastSocket mcSocket;
     private static final int SLEEP = 1000;
+    private String nickname;
 
     /**
-     * Constructor with standard socketport 500.
+     * Sending a packet to let other clients know that this client is still in the network and reachable.
+     * @param mcSocket the socket the thread must broadcast on
      */
-    public KeepAlive() {
-        try {
-            mcSocket = new MulticastSocket(500);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Constructor with given port number.
-     * @param port
-     */
-    public KeepAlive(int port) {
-        try {
-            mcSocket = new MulticastSocket(port);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public KeepAlive(MulticastSocket mcSocket, String nickname)  {
+        this.mcSocket = mcSocket;
+        this.nickname = nickname;
     }
 
     @Override
@@ -38,15 +29,19 @@ public class KeepAlive implements Runnable {
         while (running) {
             try {
                 this.wait(SLEEP);
-            } catch (InterruptedException e) {
+                mcSocket.send(makeBroadcastPacket());
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
             }
-            //mcSocket.send();
         }
-
     }
 
     public void stopKeepAlive() {
         running = false;
+    }
+
+    public DatagramPacket makeBroadcastPacket() {
+        Packet packet = new Packet(-1 , 3, new BroadcastMessage(nickname));
+        return packet.makeDatagramPacket(mcSocket.getInetAddress(), mcSocket.getPort());
     }
 }

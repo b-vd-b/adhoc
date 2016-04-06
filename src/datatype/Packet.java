@@ -1,5 +1,10 @@
 package datatype;
 
+import java.io.*;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.util.Arrays;
+
 public class Packet {
 
     private long sequenceNumber;
@@ -12,6 +17,15 @@ public class Packet {
         this.payload = payload;
     }
 
+    public Packet(byte[] data) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream in = new ByteArrayInputStream(data);
+        ObjectInputStream is = new ObjectInputStream(in);
+        Packet packet = (Packet) is.readObject();
+        this.sequenceNumber = packet.getSequenceNumber();
+        this.timeToLive = packet.getTimeToLive();
+        this.payload = packet.getPayload();
+    }
+
     public long getSequenceNumber() {
         return sequenceNumber;
     }
@@ -22,5 +36,21 @@ public class Packet {
 
     public Message getPayload() {
         return payload;
+    }
+
+    public DatagramPacket makeDatagramPacket(InetAddress address, int port) {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutput out;
+        byte[] buf = new byte[0];
+        try {
+            out = new ObjectOutputStream(bos);
+            out.writeObject(this);
+            buf = Arrays.copyOf(bos.toByteArray(),bos.toByteArray().length);
+            out.close();
+        } catch (IOException ex) {
+
+        }
+        DatagramPacket dgp = new DatagramPacket(buf,buf.length,address,port);
+        return null;
     }
 }

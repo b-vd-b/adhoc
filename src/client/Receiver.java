@@ -11,10 +11,11 @@ public class Receiver implements Runnable {
 
     private boolean running = true;
 
+    private Client client;
     private Sender sender;
     private MulticastSocket socket;
 
-    public Receiver(Sender sender, MulticastSocket socket) throws IOException {
+    public Receiver(Client client, Sender sender, MulticastSocket socket) throws IOException {
         this.sender = sender;
         this.socket = socket;
     }
@@ -31,7 +32,7 @@ public class Receiver implements Runnable {
                 Message message = packet.getPayload();
 
                 if (message instanceof BroadcastMessage) {
-                    // TODO: Implement neighbour saving.
+                    client.addNeighbour(packet.getSourceAddress(), ((BroadcastMessage) message).getNickname());
                 }
 
                 if (packet.getDestinationAddress().equals(Inet4Address.getLocalHost())) {
@@ -64,7 +65,7 @@ public class Receiver implements Runnable {
         Message message = new AckMessage(acknowledgementNumber);
         Packet acknowledgementPacket = new Packet(packet.getSourceAddress(), packet.getDestinationAddress(), sequenceNumber, 3, message);
 
-        // TODO: Send packet acknowledgement.
+        sender.sendPkt(acknowledgementPacket.makeDatagramPacket(socket.getInetAddress(), socket.getPort()));
     }
 
     public void stopReceiver() {

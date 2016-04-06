@@ -43,7 +43,7 @@ public class Client {
         Sender sender = new Sender(mcSocket);
 
         try {
-            new Thread(new Receiver(sender, mcSocket)).start();
+            new Thread(new Receiver(this, sender, mcSocket)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }

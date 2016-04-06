@@ -38,6 +38,10 @@ public class Packet {
         return payload;
     }
 
+    public void decreaseTimeToLive() {
+        timeToLive--;
+    }
+
     public DatagramPacket makeDatagramPacket(InetAddress address, int port) {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out;
@@ -48,9 +52,9 @@ public class Packet {
             buf = Arrays.copyOf(bos.toByteArray(),bos.toByteArray().length);
             out.close();
         } catch (IOException ex) {
-
+            ex.printStackTrace();
         }
-        DatagramPacket dgp = new DatagramPacket(buf,buf.length,address,port);
-        return null;
+
+        return new DatagramPacket(buf,buf.length,address,port);
     }
 }

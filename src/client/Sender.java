@@ -11,7 +11,7 @@ public class Sender {
 
     //VARIABLES
 
-    MulticastSocket msc;
+    private MulticastSocket msc;
 
     //CONSTRUCTOR
 
@@ -26,13 +26,17 @@ public class Sender {
         DatagramPacket dgp = pkt.makeDatagramPacket(address, port);
         try {
             msc.send(dgp);
-        } catch (IOException ex) {}
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void sendPkt(DatagramPacket dgp) {
         try {
             msc.send(dgp);
-        } catch (IOException ex) {}
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

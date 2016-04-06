@@ -1,39 +1,38 @@
 package client;
 
-import datatype.*;
-import java.io.ByteArrayOutputStream;
+import datatype.Message;
+import datatype.Packet;
 import java.io.IOException;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.util.Arrays;
+import java.net.MulticastSocket;
 
-public class Sender implements Runnable {
+public class Sender {
 
     //VARIABLES
 
-    //METHODS
+    MulticastSocket msc;
 
-    public void run() {
-        //do things
+    //CONSTRUCTOR
+
+    public Sender(MulticastSocket msc) {
+        this.msc = msc;
     }
 
-    public void sendMsg(Message msg, InetAddress address, int port) {
+    //METHODS
+
+    public void sendMsg(Message msg, long sqnr, int ttl, InetAddress address, int port) {
         Packet pkt = new Packet(sqnr,ttl,msg);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutput out;
-        byte[] buf = new byte[0];
+        DatagramPacket dgp = pkt.makeDatagramPacket(address, port);
         try {
-            out = new ObjectOutputStream(bos);
-            out.writeObject(pkt);
-            buf = Arrays.copyOf(bos.toByteArray(),bos.toByteArray().length);
-            out.close();
-        } catch (IOException ex) {
+            msc.send(dgp);
+        } catch (IOException ex) {}
+    }
 
-        }
-        DatagramPacket dgp = new DatagramPacket(buf,buf.length,address,port);
-
+    public void sendPkt(DatagramPacket dgp) {
+        try {
+            msc.send(dgp);
+        } catch (IOException ex) {}
     }
 
 }

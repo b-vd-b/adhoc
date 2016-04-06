@@ -1,11 +1,14 @@
 package client;
 
+import client.routing.NodeUpdater;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Client {
 
@@ -13,12 +16,12 @@ public class Client {
     private static final int PORT = 6789;
 
     private String nickname;
-    protected HashMap<InetAddress, String> destinations = new HashMap<>();
-    protected List<InetAddress> neighbours = new ArrayList<>();
-    private Thread keepAlive;
-    private Thread receiver;
-    private Sender sender;
+    protected HashMap<InetAddress, String> ipToNicknames = new HashMap<>();
+    private List<InetAddress> neighbours = new ArrayList<>();
+    private List<InetAddress> lastRoundNeighbours = new ArrayList<>();
+
     private MulticastSocket mcSocket;
+    private ReentrantLock lock = new ReentrantLock();
 
     public static void main(String[] args) {
         Client client = new Client("hoi");
@@ -35,17 +38,28 @@ public class Client {
             e.printStackTrace();
         }
 
-        keepAlive = new Thread(new KeepAlive(mcSocket, this.nickname));
-        keepAlive.start();
+        new Thread(new KeepAlive(mcSocket, this.nickname)).start();
 
-        sender = new Sender(mcSocket);
+        Sender sender = new Sender(mcSocket);
 
         try {
-            receiver = new Thread(new Receiver(sender, mcSocket
-            ));
-            receiver.start();
+            new Thread(new Receiver(sender, mcSocket)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        new Thread(new NodeUpdater(this)).start();
     }
+
+    public void addNeighbour(InetAddress address, String nickname) {
+        this.lastRoundNeighbours.add(address);
+    }
+
+    public void updateNeighbours() {
+        lock.lock();
+        neighbours = lastRoundNeighbours;
+        lastRoundNeighbours.clear();
+        lock.unlock();
+    }
+
 }

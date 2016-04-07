@@ -2,12 +2,17 @@ package client;
 
 import client.routing.NodeUpdater;
 import datatype.BroadcastMessage;
+import datatype.Message;
+import datatype.Packet;
+import datatype.TextMessage;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
+import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Client {
@@ -20,12 +25,23 @@ public class Client {
     private HashMap<InetAddress, InetAddress> nextHop = new HashMap<>();
     private HashMap<InetAddress, String> neighbours = new HashMap<>();
     private HashMap<InetAddress, String> lastRoundNeighbours = new HashMap<>();
+    private static PacketManager packetManager;
+    private static Sender sender;
 
     private MulticastSocket mcSocket;
     private ReentrantLock lock = new ReentrantLock();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Client client = new Client("hoi");
+        Scanner scanner = new Scanner(System.in);
+        while (scanner.hasNext()) {
+            String message = scanner.nextLine();
+            //System.out.println(message);
+            Message message1 = new TextMessage(false, message, "");
+            Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName(INETADDRESS), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
+            packetManager.addSentPacket(packet);
+            sender.sendPkt(packet.makeDatagramPacket());
+        }
     }
 
     public HashMap<InetAddress, String> getDestinations() {
@@ -43,11 +59,11 @@ public class Client {
             e.printStackTrace();
         }
 
-        PacketManager packetManager = new PacketManager();
+        packetManager = new PacketManager();
 
         new Thread(new KeepAlive(mcSocket, this.nickname, this, packetManager)).start();
 
-        Sender sender = new Sender(mcSocket, packetManager);
+        sender = new Sender(mcSocket, packetManager);
 
 
         try {

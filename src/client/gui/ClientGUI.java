@@ -11,7 +11,7 @@ import java.util.HashMap;
 /**
  * Created by bvdb on 6-4-2016.
  */
-public class MainChatGUI extends JPanel {
+public class ClientGUI extends JPanel {
 
     private ListModel<Client> clientListModel;
     private JList<Client> clientList;
@@ -40,14 +40,14 @@ public class MainChatGUI extends JPanel {
         }
     }
 
-    public MainChatGUI(){
+    public ClientGUI(String nickname, Client client){
         setLayout(new BorderLayout());
-
+        this.client = client;
         mainChat = new JFrame("Awesome ad hoc Chat program");
         mainChat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainChat.setMinimumSize(new Dimension(800, 600));
         mainChat.setSize(800,600);
-        groupChatTab = new GroupChatGUI();
+        groupChatTab = new GroupChatGUI(nickname, this);
 
         chatPane = new JTabbedPane();
         chatPane.addTab("GroupChat", groupChatTab);
@@ -74,13 +74,15 @@ public class MainChatGUI extends JPanel {
 
     }
 
-    public static void main(String Args[]){
-        new MainChatGUI();
-
-
-
-
+    public Client getClient(){
+        return client;
+    }
+    public void newGroupMessage(String nickname, String message){
+        groupChatTab.addMessage(nickname, message);
     }
 
+    public void newPrivateMessage(String nickname, String message){
+
+    }
 
 }

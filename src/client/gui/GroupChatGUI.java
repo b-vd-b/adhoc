@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
@@ -18,13 +19,16 @@ public class GroupChatGUI extends JPanel {
 
     private GroupChatListener listener;
     private String id;
+    private ClientGUI clientGUI;
 
     private JTextArea textArea;
     private JButton sendButton;
     private JButton fileButton;
     private JTextField inputField;
 
-    public GroupChatGUI(){
+    public GroupChatGUI(String nickname, ClientGUI clientGUI){
+        id = nickname;
+        this.clientGUI = clientGUI;
         setLayout(new BorderLayout());
 
         //create and add the text area which cannot be edited
@@ -74,12 +78,18 @@ public class GroupChatGUI extends JPanel {
 
     }
 
+
     private class SendMessageActionListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
             String msg = inputField.getText();
             inputField.setText("");
             if(msg.length() > 0){
+                try {
+                    clientGUI.getClient().sendGroupTextMessage(msg);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
                 addMessage(id, msg);
             }
         }

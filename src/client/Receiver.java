@@ -74,6 +74,9 @@ class Receiver implements Runnable {
             packetManager.parseAcknowledgement(packet);
 
         } else if (message instanceof TextMessage) {
+            String nickname = client.getlifeLongDestinations().get(packet.getSourceAddress());
+            String msg = ((TextMessage) message).getMessage();
+            client.getClientGUI().newGroupMessage(nickname, msg);
             System.out.println(((TextMessage) message).getMessage());
             acknowledgePacket(packet);
         }

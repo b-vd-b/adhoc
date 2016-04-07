@@ -1,5 +1,7 @@
 package client;
 
+import client.gui.LoginGUI;
+import client.gui.ClientGUI;
 import client.routing.NodeUpdater;
 import datatype.BroadcastMessage;
 import datatype.Message;
@@ -20,7 +22,9 @@ public class Client {
     public static final String INETADDRESS = "228.1.1.1";
     public static final int PORT = 6789;
 
+    private ClientGUI clientGUI;
     private String nickname;
+    private HashMap<InetAddress, String> lifeLongDests = new HashMap<>();
     private HashMap<InetAddress, String> destinations = new HashMap<>();
     private HashMap<InetAddress, InetAddress> nextHop = new HashMap<>();
     private HashMap<InetAddress, String> neighbours = new HashMap<>();
@@ -32,20 +36,33 @@ public class Client {
     private ReentrantLock lock = new ReentrantLock();
 
     public static void main(String[] args) throws IOException {
-        Client client = new Client("hoi");
+        LoginGUI login = new LoginGUI();
+
+        //Client client = new Client("hoi");
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNext()) {
             String message = scanner.nextLine();
             //System.out.println(message);
             Message message1 = new TextMessage(false, message, "");
-            Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName(INETADDRESS), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
+            Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.1"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
             packetManager.addSentPacket(packet);
             sender.sendPkt(packet.makeDatagramPacket());
         }
     }
 
+    public HashMap<InetAddress, String> getlifeLongDestinations() {
+        return lifeLongDests;
+    }
+
     public HashMap<InetAddress, String> getDestinations() {
         return destinations;
+    }
+
+    public void sendGroupTextMessage(String message) throws IOException {
+        Message message1 = new TextMessage(false, message, "");
+        Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.1"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
+        packetManager.addSentPacket(packet);
+        sender.sendPkt(packet.makeDatagramPacket());
     }
 
     public Client(String nickname) {
@@ -73,6 +90,7 @@ public class Client {
         }
 
         new Thread(new NodeUpdater(this)).start();
+        clientGUI = new ClientGUI(nickname, this);
     }
 
     public void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
@@ -81,6 +99,7 @@ public class Client {
             if (!destinations.containsKey(e)) {
                 if (!e.equals(InetAddress.getLocalHost())) {
                     destinations.put(address, message.getNickname());
+                    lifeLongDests.put(address, message.getNickname());
                     nextHop.put(e, address);
                 }
             }
@@ -103,6 +122,7 @@ public class Client {
         for (InetAddress e : neighbours.keySet()) {
             if (!destinations.containsKey(e)) {
                 destinations.put(e, neighbours.get(e));
+                lifeLongDests.put(e, neighbours.get(e));
                 nextHop.put(e, e);
             }
         }
@@ -118,4 +138,7 @@ public class Client {
         lock.unlock();
     }
 
+    public ClientGUI getClientGUI(){
+        return clientGUI;
+    }
 }

@@ -14,14 +14,12 @@ public class NodeUpdater implements Runnable {
     @Override
     public void run() {
         while (running) {
-            for (int i = 0; i < 3; i++) {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                client.updateNeighbours();
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+            client.updateNeighbours();
         }
     }
 

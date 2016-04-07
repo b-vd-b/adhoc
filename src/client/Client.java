@@ -7,9 +7,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Client {
@@ -70,7 +68,7 @@ public class Client {
         }
         for (InetAddress e : nextHop.keySet()) {
             if (!message.getDestinations().containsKey(e)) {
-                if (message.getDestinations().get(e).equals(address)) {
+                if (nextHop.get(e).equals(address)) {
                     destinations.remove(e);
                     nextHop.remove(e);
                 }
@@ -80,7 +78,8 @@ public class Client {
 
     public void updateNeighbours() {
         lock.lock();
-        neighbours = lastRoundNeighbours;
+        neighbours.clear();
+        neighbours.putAll(lastRoundNeighbours);
         lastRoundNeighbours.clear();
         for (InetAddress e : neighbours.keySet()) {
             if (!destinations.containsKey(e)) {
@@ -90,6 +89,7 @@ public class Client {
         }
         for (InetAddress e : destinations.keySet()) {
             if (!neighbours.containsKey(e)) {
+                System.out.println(nextHop.get(e) == e);
                 if (nextHop.get(e).equals(e)) {
                     destinations.remove(e);
                     nextHop.remove(e);
@@ -97,8 +97,6 @@ public class Client {
             }
         }
         lock.unlock();
-        System.out.println("Destination hashmap: " + destinations.toString());
-        System.out.println("nextHop hashmap: " + nextHop.toString());
     }
 
 }

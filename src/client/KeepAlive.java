@@ -21,10 +21,11 @@ public class KeepAlive implements Runnable {
      * Sending a packet to let other clients know that this client is still in the network and reachable.
      * @param mcSocket the socket the thread must broadcast on
      */
-    public KeepAlive(MulticastSocket mcSocket, String nickname, Client client)  {
+    public KeepAlive(MulticastSocket mcSocket, String nickname, Client client, PacketManager packetManager)  {
         this.mcSocket = mcSocket;
         this.nickname = nickname;
         this.client = client;
+        this.packetManager = packetManager;
     }
 
     @Override

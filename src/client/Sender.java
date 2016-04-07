@@ -12,11 +12,13 @@ public class Sender {
     //VARIABLES
 
     private MulticastSocket msc;
+    private PacketManager packetManager;
 
     //CONSTRUCTOR
 
-    public Sender(MulticastSocket msc) {
+    public Sender(MulticastSocket msc, PacketManager packetManager) {
         this.msc = msc;
+        this.packetManager = packetManager;
     }
 
     //METHODS

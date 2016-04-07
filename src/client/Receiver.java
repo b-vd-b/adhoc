@@ -16,11 +16,11 @@ class Receiver implements Runnable {
     private MulticastSocket socket;
     private PacketManager packetManager;
 
-    Receiver(Client client, Sender sender, MulticastSocket socket) throws IOException {
+    Receiver(Client client, Sender sender, MulticastSocket socket, PacketManager packetManager) throws IOException {
         this.client = client;
         this.sender = sender;
         this.socket = socket;
-        this.packetManager = new PacketManager();
+        this.packetManager = packetManager;
     }
 
     @Override

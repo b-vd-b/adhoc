@@ -43,12 +43,15 @@ public class Client {
             e.printStackTrace();
         }
 
-        new Thread(new KeepAlive(mcSocket, this.nickname, this)).start();
+        PacketManager packetManager = new PacketManager();
 
-        Sender sender = new Sender(mcSocket);
+        new Thread(new KeepAlive(mcSocket, this.nickname, this, packetManager)).start();
+
+        Sender sender = new Sender(mcSocket, packetManager);
+
 
         try {
-            new Thread(new Receiver(this, sender, mcSocket)).start();
+            new Thread(new Receiver(this, sender, mcSocket, packetManager)).start();
         } catch (IOException e) {
             e.printStackTrace();
         }

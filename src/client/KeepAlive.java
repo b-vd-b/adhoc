@@ -15,6 +15,7 @@ public class KeepAlive implements Runnable {
     private static final int SLEEP = 1000;
     private String nickname;
     private Client client;
+    private PacketManager packetManager;
 
     /**
      * Sending a packet to let other clients know that this client is still in the network and reachable.
@@ -30,10 +31,17 @@ public class KeepAlive implements Runnable {
     public void run() {
         while (running) {
             try {
-                mcSocket.send(makeBroadcastPacket());
-                Thread.sleep(SLEEP);
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
+                for (int i = 0; i < 5; i++) {
+                    mcSocket.send(makeBroadcastPacket());
+                    Thread.sleep(SLEEP);
+                }
+
+                // Retransmit unacknowledged packets.
+                for (Packet packet : packetManager.getUnacknowledgedPackets()) {
+                    mcSocket.send(packet.makeDatagramPacket());
+                }
+            } catch (InterruptedException | IOException ex) {
+                ex.printStackTrace();
             }
         }
     }

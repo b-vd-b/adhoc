@@ -38,6 +38,10 @@ class PacketManager {
         unacknowledgedPackets.add(packet);
     }
 
+    List<Packet> getUnacknowledgedPackets() {
+        return unacknowledgedPackets;
+    }
+
     void parseAcknowledgement(Packet ack) throws IOException {
         Packet acknowledgedPacket = null;
 

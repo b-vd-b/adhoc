@@ -58,6 +58,13 @@ public class Packet implements Serializable {
         timeToLive--;
     }
 
+    public int getLength() throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ObjectOutput objectOutput = new ObjectOutputStream(byteArrayOutputStream);
+        objectOutput.writeObject(this.getPayload());
+        return byteArrayOutputStream.toByteArray().length;
+    }
+
     public DatagramPacket makeDatagramPacket() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);

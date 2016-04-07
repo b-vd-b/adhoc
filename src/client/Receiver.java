@@ -14,11 +14,13 @@ class Receiver implements Runnable {
     private Client client;
     private Sender sender;
     private MulticastSocket socket;
+    private PacketManager packetManager;
 
     Receiver(Client client, Sender sender, MulticastSocket socket) throws IOException {
         this.client = client;
         this.sender = sender;
         this.socket = socket;
+        this.packetManager = new PacketManager();
     }
 
     @Override
@@ -32,10 +34,25 @@ class Receiver implements Runnable {
                 Packet packet = new Packet(buffer);
                 Message message = packet.getPayload();
 
-                if (message instanceof BroadcastMessage) {
-                    client.addNeighbour(packet.getSourceAddress(), ((BroadcastMessage) message).getNickname());
+                // Ignore all packets sent by own host.
+                if (packet.getSourceAddress().equals(Inet4Address.getLocalHost())) {
+                    continue;
                 }
 
+                // Parse broadcast message by adding destinations to known destinations list.
+                if (message instanceof BroadcastMessage) {
+                    client.addNeighbour(packet.getSourceAddress(), ((BroadcastMessage) message));
+                    continue;
+                }
+
+                // Ignore packets that have been received earlier and are retransmitted by neighbours.
+                if (packetManager.isKnownPacket(packet)) {
+                    continue;
+                } else {
+                    packetManager.addReceivedPacket(packet);
+                }
+
+                // Parse packet if it has arrived at final destination, retransmit packet if not.
                 if (packet.getDestinationAddress().equals(Inet4Address.getLocalHost())) {
                     parsePacket(packet);
                 } else {
@@ -53,18 +70,20 @@ class Receiver implements Runnable {
         // TODO: Add payload parsing.
         Message message = packet.getPayload();
 
-        if (message instanceof TextMessage) {
+        if (message instanceof AckMessage) {
+            packetManager.parseAcknowledgement(packet);
+
+        } else if (message instanceof TextMessage) {
             System.out.println(((TextMessage) message).getMessage());
             acknowledgePacket(packet);
         }
     }
 
     private void acknowledgePacket(Packet packet) throws IOException {
-        // TODO: Add acknowledgement number calculation.
         long sequenceNumber = packet.getSequenceNumber();
-        long acknowledgementNumber = packet.getSequenceNumber() + 1;
+        long acknowledgementNumber = packet.getSequenceNumber() + packet.getLength();
         Message message = new AckMessage(acknowledgementNumber);
-        Packet acknowledgementPacket = new Packet(packet.getSourceAddress(), packet.getDestinationAddress(), sequenceNumber, 3, message);
+        Packet acknowledgementPacket = new Packet(Inet4Address.getLocalHost(), packet.getSourceAddress(), sequenceNumber, 3, message);
 
         sender.sendPkt(acknowledgementPacket.makeDatagramPacket());
     }

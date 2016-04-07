@@ -14,14 +14,16 @@ public class KeepAlive implements Runnable {
     private MulticastSocket mcSocket;
     private static final int SLEEP = 1000;
     private String nickname;
+    private Client client;
 
     /**
      * Sending a packet to let other clients know that this client is still in the network and reachable.
      * @param mcSocket the socket the thread must broadcast on
      */
-    public KeepAlive(MulticastSocket mcSocket, String nickname)  {
+    public KeepAlive(MulticastSocket mcSocket, String nickname, Client client)  {
         this.mcSocket = mcSocket;
         this.nickname = nickname;
+        this.client = client;
     }
 
     @Override
@@ -41,7 +43,7 @@ public class KeepAlive implements Runnable {
     }
 
     public DatagramPacket makeBroadcastPacket() throws IOException {
-        Packet packet = new Packet(Inet4Address.getLocalHost(), Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname));
+        Packet packet = new Packet(Inet4Address.getLocalHost(), Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname, client.getDestinations()));
         return packet.makeDatagramPacket();
     }
 }

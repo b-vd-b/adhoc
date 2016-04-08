@@ -11,7 +11,7 @@ import java.net.MulticastSocket;
 class KeepAlive implements Runnable {
 
     private MulticastSocket mcSocket;
-    private static final int SLEEP = 1000;
+    private static final int SLEEP = 500;
     private String nickname;
     private Client client;
     private PacketManager packetManager;

@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Client {
 
@@ -28,6 +29,7 @@ public class Client {
     private HashMap<InetAddress, String> lastRoundNeighbours = new HashMap<>();
     private static PacketManager packetManager;
     private static Sender sender;
+    private ReentrantLock lock = new ReentrantLock();
 
     private MulticastSocket mcSocket;
 
@@ -40,7 +42,7 @@ public class Client {
             String message = scanner.nextLine();
             //System.out.println(message);
             Message message1 = new PrivateTextMessage(false, message, "");
-            Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.1"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
+            Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.0"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
             packetManager.addSentPacket(packet);
             sender.sendPkt(packet.makeDatagramPacket());
         }
@@ -95,6 +97,7 @@ public class Client {
     }
 
     void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
+        lock.lock();
         this.lastRoundNeighbours.put(address, message.getNickname());
         for (InetAddress e : message.getDestinations().keySet()) {
             if (!destinations.containsKey(e)) {
@@ -117,9 +120,11 @@ public class Client {
             clientGUI.removeClient(e);
             nextHop.remove(e);
         }
+        lock.unlock();
     }
 
     public void updateNeighbours() {
+        lock.lock();
         neighbours.clear();
         neighbours.putAll(lastRoundNeighbours);
         lastRoundNeighbours.clear();
@@ -131,14 +136,20 @@ public class Client {
             }
             nextHop.put(e, e);
         });
+
+        List<InetAddress> toRemove = new ArrayList<>();
         destinations.keySet().stream().filter(e -> !neighbours.containsKey(e)).forEach(e -> {
-            System.out.println(nextHop.get(e) == e);
             if (nextHop.get(e).equals(e)) {
-                destinations.remove(e);
-                clientGUI.removeClient(e);
-                nextHop.remove(e);
+                toRemove.add(e);
             }
         });
+
+        for (InetAddress e : toRemove) {
+            destinations.remove(e);
+            clientGUI.removeClient(e);
+            nextHop.remove(e);
+        }
+        lock.unlock();
     }
 
     ClientGUI getClientGUI(){

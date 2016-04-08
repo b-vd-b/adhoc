@@ -61,17 +61,18 @@ class PacketManager {
     }
 
     boolean isKnownPacket(Packet packet) throws IOException {
-        if (receivedPackets.get(packet.getDestinationAddress()) == null) {
+        if (receivedPackets.get(packet.getSourceAddress()) == null) {
             return false;
         }
 
-        for (Packet receivedPacket : receivedPackets.get(packet.getDestinationAddress())) {
+        for (Packet receivedPacket : receivedPackets.get(packet.getSourceAddress())) {
             if (receivedPacket.getSequenceNumber() == packet.getSequenceNumber()) {
                 if (receivedPacket.getLength() == packet.getLength()) {
                     return true;
                 }
             }
         }
+
         return false;
     }
 

@@ -36,7 +36,7 @@ public class PrivateChatGUI extends JPanel {
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
-                addMessage(nickname, msg);
+                addMessage(clientGUI.getNickname(), msg);
             }
         }
     }

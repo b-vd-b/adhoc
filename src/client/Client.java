@@ -104,7 +104,7 @@ public class Client {
                 if (!e.equals(InetAddress.getLocalHost())) {
                     destinations.put(address, message.getNickname());
                     lifeLongDests.put(address, message.getNickname());
-                    if(!clientGUI.getClients().containsKey(e)){
+                    if(!clientGUI.getClients().containsKey(message.getNickname())){
                         clientGUI.addClient(message.getNickname(), address);
                     }
                     nextHop.put(e, address);
@@ -117,7 +117,7 @@ public class Client {
 
         for (InetAddress e : toRemove) {
             destinations.remove(e);
-            clientGUI.removeClient(e);
+            clientGUI.removeClient(lifeLongDests.get(e));
             nextHop.remove(e);
         }
         lock.unlock();
@@ -131,7 +131,7 @@ public class Client {
         neighbours.keySet().stream().filter(e -> !destinations.containsKey(e)).forEach(e -> {
             destinations.put(e, neighbours.get(e));
             lifeLongDests.put(e, neighbours.get(e));
-            if (!clientGUI.getClients().containsKey(e)) {
+            if (!clientGUI.getClients().containsKey(neighbours.get(e))) {
                 clientGUI.addClient(neighbours.get(e), e);
             }
             nextHop.put(e, e);
@@ -146,7 +146,7 @@ public class Client {
 
         for (InetAddress e : toRemove) {
             destinations.remove(e);
-            clientGUI.removeClient(e);
+            clientGUI.removeClient(lifeLongDests.get(e));
             nextHop.remove(e);
         }
         lock.unlock();

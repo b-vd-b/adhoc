@@ -55,6 +55,7 @@ public class ClientGUI extends JPanel {
 
     public ClientGUI(String nickname, Client client){
         setLayout(new BorderLayout());
+        this.nickname = nickname;
         this.client = client;
         this.clients = new HashMap<>();
         this.privateChatTabs = new HashMap<>();
@@ -89,7 +90,7 @@ public class ClientGUI extends JPanel {
         mainChat.pack();
 
     }
-
+    public String getNickname() { return nickname; }
     public Client getClient(){
         return client;
     }

@@ -6,7 +6,7 @@ import client.routing.NodeUpdater;
 import datatype.BroadcastMessage;
 import datatype.Message;
 import datatype.Packet;
-import datatype.TextMessage;
+import datatype.PrivateTextMessage;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -42,7 +42,7 @@ public class Client {
         while (scanner.hasNext()) {
             String message = scanner.nextLine();
             //System.out.println(message);
-            Message message1 = new TextMessage(false, message, "");
+            Message message1 = new PrivateTextMessage(false, message, "");
             Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.1"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
             packetManager.addSentPacket(packet);
             sender.sendPkt(packet.makeDatagramPacket());
@@ -58,7 +58,7 @@ public class Client {
     }
 
     public void sendGroupTextMessage(String message) throws IOException {
-        Message message1 = new TextMessage(false, message, "");
+        Message message1 = new PrivateTextMessage(false, message, "");
         Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.1"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
         packetManager.addSentPacket(packet);
         sender.sendPkt(packet.makeDatagramPacket());

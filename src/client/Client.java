@@ -57,7 +57,6 @@ public class Client {
     public void sendGroupTextMessage(String message) throws IOException {
         Message message1 = new GroupTextMessage(message, "");
         Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.0"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
-        packetManager.addSentPacket(packet);
         sender.sendPkt(packet.makeDatagramPacket());
     }
 

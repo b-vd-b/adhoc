@@ -75,10 +75,11 @@ class Receiver implements Runnable {
             String nickname = client.getLifeLongDestinations().get(packet.getSourceAddress());
             String msg = ((GroupTextMessage) message).getMessage();
             client.getClientGUI().newGroupMessage(nickname, msg);
-            System.out.println(((GroupTextMessage) message).getMessage());
             retransmitPacket(packet);
         } else if (message instanceof PrivateTextMessage) {
-            System.out.println("[Private Message] " + ((PrivateTextMessage) message).getMessage());
+            String nickname = client.getLifeLongDestinations().get(packet.getSourceAddress());
+            String msg = ((PrivateTextMessage) message).getMessage();
+            client.getClientGUI().newPrivateMessage(nickname, msg);
             acknowledgePacket(packet);
         }
     }
@@ -94,7 +95,11 @@ class Receiver implements Runnable {
 
     private void retransmitPacket(Packet packet) throws IOException {
         packet.decreaseTimeToLive();
-        sender.sendPkt(packet.makeDatagramPacket());
+
+        // Only send packets that are still allowed to be retransmitted.
+        if (packet.getTimeToLive() > 0) {
+            sender.sendPkt(packet.makeDatagramPacket());
+        }
     }
 
     public void stopReceiver() {

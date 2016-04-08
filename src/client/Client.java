@@ -23,7 +23,6 @@ public class Client {
     public static final int PORT = 6789;
 
     private ClientGUI clientGUI;
-    private String nickname;
     private HashMap<InetAddress, String> lifeLongDests = new HashMap<>();
     private HashMap<InetAddress, String> destinations = new HashMap<>();
     private HashMap<InetAddress, InetAddress> nextHop = new HashMap<>();
@@ -36,7 +35,7 @@ public class Client {
     private ReentrantLock lock = new ReentrantLock();
 
     public static void main(String[] args) throws IOException {
-        LoginGUI login = new LoginGUI();
+        new LoginGUI();
 
         //Client client = new Client("hoi");
         Scanner scanner = new Scanner(System.in);
@@ -50,11 +49,11 @@ public class Client {
         }
     }
 
-    public HashMap<InetAddress, String> getlifeLongDestinations() {
+    HashMap<InetAddress, String> getLifeLongDestinations() {
         return lifeLongDests;
     }
 
-    public HashMap<InetAddress, String> getDestinations() {
+    HashMap<InetAddress, String> getDestinations() {
         return destinations;
     }
 
@@ -66,7 +65,6 @@ public class Client {
     }
 
     public Client(String nickname) {
-        this.nickname = nickname;
         InetAddress group;
         try {
             group = InetAddress.getByName(INETADDRESS);
@@ -78,7 +76,7 @@ public class Client {
 
         packetManager = new PacketManager();
 
-        new Thread(new KeepAlive(mcSocket, this.nickname, this, packetManager)).start();
+        new Thread(new KeepAlive(mcSocket, nickname, this, packetManager)).start();
 
         sender = new Sender(mcSocket, packetManager);
 
@@ -93,7 +91,8 @@ public class Client {
         clientGUI = new ClientGUI(nickname, this);
     }
 
-    public void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
+    void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
+        lock.lock();
         this.lastRoundNeighbours.put(address, message.getNickname());
         for (InetAddress e : message.getDestinations().keySet()) {
             if (!destinations.containsKey(e)) {
@@ -107,15 +106,12 @@ public class Client {
                 }
             }
         }
-        for (InetAddress e : nextHop.keySet()) {
-            if (!message.getDestinations().containsKey(e)) {
-                if (nextHop.get(e).equals(address)) {
-                    destinations.remove(e);
-                    clientGUI.removeClient(e);
-                    nextHop.remove(e);
-                }
-            }
-        }
+        nextHop.keySet().stream().filter(e -> !message.getDestinations().containsKey(e)).filter(e -> nextHop.get(e).equals(address)).forEach(e -> {
+            destinations.remove(e);
+            clientGUI.removeClient(e);
+            nextHop.remove(e);
+        });
+        lock.unlock();
     }
 
     public void updateNeighbours() {
@@ -123,30 +119,26 @@ public class Client {
         neighbours.clear();
         neighbours.putAll(lastRoundNeighbours);
         lastRoundNeighbours.clear();
-        for (InetAddress e : neighbours.keySet()) {
-            if (!destinations.containsKey(e)) {
-                destinations.put(e, neighbours.get(e));
-                lifeLongDests.put(e, neighbours.get(e));
-                if(!clientGUI.getClients().containsKey(e)){
-                    clientGUI.addClient(e, neighbours.get(e));
-                }
-                nextHop.put(e, e);
+        neighbours.keySet().stream().filter(e -> !destinations.containsKey(e)).forEach(e -> {
+            destinations.put(e, neighbours.get(e));
+            lifeLongDests.put(e, neighbours.get(e));
+            if (!clientGUI.getClients().containsKey(e)) {
+                clientGUI.addClient(e, neighbours.get(e));
             }
-        }
-        for (InetAddress e : destinations.keySet()) {
-            if (!neighbours.containsKey(e)) {
-                System.out.println(nextHop.get(e) == e);
-                if (nextHop.get(e).equals(e)) {
-                    destinations.remove(e);
-                    clientGUI.removeClient(e);
-                    nextHop.remove(e);
-                }
+            nextHop.put(e, e);
+        });
+        destinations.keySet().stream().filter(e -> !neighbours.containsKey(e)).forEach(e -> {
+            System.out.println(nextHop.get(e) == e);
+            if (nextHop.get(e).equals(e)) {
+                destinations.remove(e);
+                clientGUI.removeClient(e);
+                nextHop.remove(e);
             }
-        }
+        });
         lock.unlock();
     }
 
-    public ClientGUI getClientGUI(){
+    ClientGUI getClientGUI(){
         return clientGUI;
     }
 }

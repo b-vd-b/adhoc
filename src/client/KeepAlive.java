@@ -8,9 +8,8 @@ import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.MulticastSocket;
 
-public class KeepAlive implements Runnable {
+class KeepAlive implements Runnable {
 
-    private boolean running = true;
     private MulticastSocket mcSocket;
     private static final int SLEEP = 1000;
     private String nickname;
@@ -21,7 +20,7 @@ public class KeepAlive implements Runnable {
      * Sending a packet to let other clients know that this client is still in the network and reachable.
      * @param mcSocket the socket the thread must broadcast on
      */
-    public KeepAlive(MulticastSocket mcSocket, String nickname, Client client, PacketManager packetManager)  {
+    KeepAlive(MulticastSocket mcSocket, String nickname, Client client, PacketManager packetManager)  {
         this.mcSocket = mcSocket;
         this.nickname = nickname;
         this.client = client;
@@ -30,7 +29,7 @@ public class KeepAlive implements Runnable {
 
     @Override
     public void run() {
-        while (running) {
+        while (true) {
             try {
                 for (int i = 0; i < 5; i++) {
                     mcSocket.send(makeBroadcastPacket());
@@ -47,11 +46,7 @@ public class KeepAlive implements Runnable {
         }
     }
 
-    public void stopKeepAlive() {
-        running = false;
-    }
-
-    public DatagramPacket makeBroadcastPacket() throws IOException {
+    private DatagramPacket makeBroadcastPacket() throws IOException {
         Packet packet = new Packet(Inet4Address.getLocalHost(), Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname, client.getDestinations()));
         return packet.makeDatagramPacket();
     }

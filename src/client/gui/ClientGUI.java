@@ -56,6 +56,7 @@ public class ClientGUI extends JPanel {
         setLayout(new BorderLayout());
         this.client = client;
         this.clients = new HashMap<>();
+        this.privateChatTabs = new HashMap<>();
         mainChat = new JFrame("Awesome ad hoc Chat program");
         mainChat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainChat.setMinimumSize(new Dimension(800, 600));
@@ -99,15 +100,14 @@ public class ClientGUI extends JPanel {
     }
 
     public void newPrivateMessage(String nickname, String message){
-        if(privateChatTabs.containsKey(client)){
-            chatPane.setSelectedComponent(privateChatTabs.get(client));
-        } else{
+        if(!privateChatTabs.containsKey(client)){
             PrivateChatGUI privateChatGUI = new PrivateChatGUI(nickname, this);
             privateChatTabs.put(nickname, privateChatGUI);
 
             chatPane.addTab(nickname, privateChatGUI);
             chatPane.setSelectedComponent(privateChatGUI);
         }
+        privateChatTabs.get(nickname).addMessage(nickname, message);
     }
 
     public void addClient(String nickname, InetAddress address){

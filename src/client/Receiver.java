@@ -50,8 +50,6 @@ class Receiver implements Runnable {
                     continue;
                 }
 
-                System.out.println("TEST");
-
                 // Ignore packets that have been received earlier and are retransmitted by neighbours.
                 if (packetManager.isKnownPacket(packet)) {
                     continue;

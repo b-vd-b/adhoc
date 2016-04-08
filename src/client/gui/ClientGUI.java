@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.InetAddress;
 import java.util.HashMap;
 
 /**
@@ -13,8 +14,9 @@ import java.util.HashMap;
  */
 public class ClientGUI extends JPanel {
 
-    private ListModel<Client> clientListModel;
-    private JList<Client> clientList;
+    private HashMap<InetAddress,String> clients;
+    private DefaultListModel<String> clientListModel;
+    private JList<String> clientList;
     private JFrame mainChat;
     private JTabbedPane chatPane;
     private JScrollPane scrollPane;
@@ -30,10 +32,10 @@ public class ClientGUI extends JPanel {
 
         public void mouseClicked(MouseEvent e) {
             if(e.getClickCount()==2){
-                Client client = clientList.getSelectedValue();
+                String client = clientList.getSelectedValue();
                 PrivateChatGUI privateChatGUI = new PrivateChatGUI();
                 // set actionlistener private moet hier nog komen
-                privateChatTabs.put(client,privateChatGUI);
+                //privateChatTabs.put(client,privateChatGUI);
                 chatPane.addTab(client.toString(), privateChatGUI);
                 chatPane.setSelectedComponent(privateChatGUI);
             }
@@ -43,6 +45,7 @@ public class ClientGUI extends JPanel {
     public ClientGUI(String nickname, Client client){
         setLayout(new BorderLayout());
         this.client = client;
+        this.clients = new HashMap<>();
         mainChat = new JFrame("Awesome ad hoc Chat program");
         mainChat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainChat.setMinimumSize(new Dimension(800, 600));
@@ -55,7 +58,7 @@ public class ClientGUI extends JPanel {
         chatPane.setPreferredSize(new Dimension(600,600));
 
         clientListModel = new DefaultListModel<>();
-        clientList = new JList<Client>(clientListModel);
+        clientList = new JList<>(clientListModel);
         clientList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 
@@ -77,6 +80,9 @@ public class ClientGUI extends JPanel {
     public Client getClient(){
         return client;
     }
+    public HashMap<InetAddress, String> getClients(){
+        return clients;
+    }
     public void newGroupMessage(String nickname, String message){
         groupChatTab.addMessage(nickname, message);
     }
@@ -85,4 +91,14 @@ public class ClientGUI extends JPanel {
 
     }
 
+    public void addClient(InetAddress address, String nickname){
+        clients.put(address, nickname);
+        clientListModel.addElement(nickname);
+
+    }
+
+    public void removeClient(InetAddress address){
+        clients.remove(address);
+        clientListModel.removeElement(address);
+    }
 }

@@ -100,6 +100,9 @@ public class Client {
                 if (!e.equals(InetAddress.getLocalHost())) {
                     destinations.put(address, message.getNickname());
                     lifeLongDests.put(address, message.getNickname());
+                    if(!clientGUI.getClients().containsKey(e)){
+                        clientGUI.addClient(address, message.getNickname());
+                    }
                     nextHop.put(e, address);
                 }
             }
@@ -108,6 +111,7 @@ public class Client {
             if (!message.getDestinations().containsKey(e)) {
                 if (nextHop.get(e).equals(address)) {
                     destinations.remove(e);
+                    clientGUI.removeClient(e);
                     nextHop.remove(e);
                 }
             }
@@ -123,6 +127,9 @@ public class Client {
             if (!destinations.containsKey(e)) {
                 destinations.put(e, neighbours.get(e));
                 lifeLongDests.put(e, neighbours.get(e));
+                if(!clientGUI.getClients().containsKey(e)){
+                    clientGUI.addClient(e, neighbours.get(e));
+                }
                 nextHop.put(e, e);
             }
         }
@@ -131,6 +138,7 @@ public class Client {
                 System.out.println(nextHop.get(e) == e);
                 if (nextHop.get(e).equals(e)) {
                     destinations.remove(e);
+                    clientGUI.removeClient(e);
                     nextHop.remove(e);
                 }
             }

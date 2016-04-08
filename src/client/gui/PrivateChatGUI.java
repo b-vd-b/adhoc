@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
@@ -16,7 +17,8 @@ import static java.awt.GridBagConstraints.NONE;
  */
 public class PrivateChatGUI extends JPanel {
 
-    private String id;
+    private String nickname;
+    private ClientGUI clientGUI;
 
     private JTextArea textArea;
     private JButton sendButton;
@@ -29,8 +31,12 @@ public class PrivateChatGUI extends JPanel {
             String msg = inputField.getText();
             inputField.setText("");
             if(msg.length() > 0){
-                //listener.onGroupMessageSend(msg);
-                addMessage(id, msg);
+                try {
+                    clientGUI.getClient().sendPrivateTextMessage(msg, nickname);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                addMessage(nickname, msg);
             }
         }
     }
@@ -42,7 +48,9 @@ public class PrivateChatGUI extends JPanel {
         }
     }
 
-    public PrivateChatGUI(){
+    public PrivateChatGUI(String nickname, ClientGUI clientGUI){
+        this.nickname = nickname;
+        this.clientGUI = clientGUI;
         setLayout(new BorderLayout());
 
         //create and add the text area which cannot be edited

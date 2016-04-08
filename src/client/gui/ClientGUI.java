@@ -14,7 +14,7 @@ import java.util.HashMap;
  */
 public class ClientGUI extends JPanel {
 
-    private HashMap<InetAddress,String> clients;
+    private HashMap<String,InetAddress> clients;
     private DefaultListModel<String> clientListModel;
     private JList<String> clientList;
     private JFrame mainChat;
@@ -23,21 +23,31 @@ public class ClientGUI extends JPanel {
     private JSplitPane splitPane;
 
     private Client client;
-    private String id;
+    private String nickname;
 
     private GroupChatGUI groupChatTab;
-    private HashMap<Client, PrivateChatGUI> privateChatTabs;
+    private HashMap<String, PrivateChatGUI> privateChatTabs;
 
     private class ClientSelectionListener extends MouseAdapter {
+        private ClientGUI clientGUI;
+        public ClientSelectionListener(ClientGUI clientGUI) {
+            super();
+            this.clientGUI = clientGUI;
+        }
 
         public void mouseClicked(MouseEvent e) {
             if(e.getClickCount()==2){
                 String client = clientList.getSelectedValue();
-                PrivateChatGUI privateChatGUI = new PrivateChatGUI();
-                // set actionlistener private moet hier nog komen
-                //privateChatTabs.put(client,privateChatGUI);
-                chatPane.addTab(client.toString(), privateChatGUI);
-                chatPane.setSelectedComponent(privateChatGUI);
+
+                if(privateChatTabs.containsKey(client)){
+                    chatPane.setSelectedComponent(privateChatTabs.get(client));
+                } else{
+                    PrivateChatGUI privateChatGUI = new PrivateChatGUI(client, clientGUI);
+                    privateChatTabs.put(client, privateChatGUI);
+
+                    chatPane.addTab(client, privateChatGUI);
+                    chatPane.setSelectedComponent(privateChatGUI);
+                }
             }
         }
     }
@@ -59,6 +69,7 @@ public class ClientGUI extends JPanel {
 
         clientListModel = new DefaultListModel<>();
         clientList = new JList<>(clientListModel);
+        clientList.addMouseListener(new ClientSelectionListener(this));
         clientList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 
@@ -80,7 +91,7 @@ public class ClientGUI extends JPanel {
     public Client getClient(){
         return client;
     }
-    public HashMap<InetAddress, String> getClients(){
+    public HashMap<String, InetAddress> getClients(){
         return clients;
     }
     public void newGroupMessage(String nickname, String message){
@@ -88,11 +99,19 @@ public class ClientGUI extends JPanel {
     }
 
     public void newPrivateMessage(String nickname, String message){
+        if(privateChatTabs.containsKey(client)){
+            chatPane.setSelectedComponent(privateChatTabs.get(client));
+        } else{
+            PrivateChatGUI privateChatGUI = new PrivateChatGUI(nickname, this);
+            privateChatTabs.put(nickname, privateChatGUI);
 
+            chatPane.addTab(nickname, privateChatGUI);
+            chatPane.setSelectedComponent(privateChatGUI);
+        }
     }
 
-    public void addClient(InetAddress address, String nickname){
-        clients.put(address, nickname);
+    public void addClient(String nickname, InetAddress address){
+        clients.put(nickname, address);
         clientListModel.addElement(nickname);
 
     }

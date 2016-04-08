@@ -3,10 +3,7 @@ package client;
 import client.gui.ClientGUI;
 import client.gui.LoginGUI;
 import client.routing.NodeUpdater;
-import datatype.BroadcastMessage;
-import datatype.Message;
-import datatype.Packet;
-import datatype.PrivateTextMessage;
+import datatype.*;
 
 import java.io.IOException;
 import java.net.Inet4Address;
@@ -58,8 +55,15 @@ public class Client {
     }
 
     public void sendGroupTextMessage(String message) throws IOException {
-        Message message1 = new PrivateTextMessage(false, message, "");
+        Message message1 = new GroupTextMessage(message, "");
         Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.1"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
+        packetManager.addSentPacket(packet);
+        sender.sendPkt(packet.makeDatagramPacket());
+    }
+
+    public void sendPrivateTextMessage(String message, String nickname) throws IOException {
+        Message message1 = new PrivateTextMessage(false, message, "");
+        Packet packet = new Packet(Inet4Address.getLocalHost(), clientGUI.getClients().get(nickname), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
         packetManager.addSentPacket(packet);
         sender.sendPkt(packet.makeDatagramPacket());
     }
@@ -99,7 +103,7 @@ public class Client {
                     destinations.put(address, message.getNickname());
                     lifeLongDests.put(address, message.getNickname());
                     if(!clientGUI.getClients().containsKey(e)){
-                        clientGUI.addClient(address, message.getNickname());
+                        clientGUI.addClient(message.getNickname(), address);
                     }
                     nextHop.put(e, address);
                 }
@@ -124,7 +128,7 @@ public class Client {
             destinations.put(e, neighbours.get(e));
             lifeLongDests.put(e, neighbours.get(e));
             if (!clientGUI.getClients().containsKey(e)) {
-                clientGUI.addClient(e, neighbours.get(e));
+                clientGUI.addClient(neighbours.get(e), e);
             }
             nextHop.put(e, e);
         });

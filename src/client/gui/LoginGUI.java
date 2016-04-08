@@ -70,7 +70,7 @@ public class LoginGUI extends JDialog implements ActionListener, PropertyChangeL
                 nickname = inputField.getText();
                 if(nickname.length()>0){
                     JOptionPane.showMessageDialog(this, "Your nickname will be: "+nickname);
-                    Client client = new Client(nickname);
+                    new Client(nickname);
                     exit();
 
                 }else{
@@ -79,7 +79,6 @@ public class LoginGUI extends JDialog implements ActionListener, PropertyChangeL
                 }
             } else {
                 JOptionPane.showMessageDialog(this, "Ok, Bye");
-                nickname = null;
                 exit();
             }
         }

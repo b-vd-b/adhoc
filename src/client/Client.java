@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 public class Client {
 
@@ -29,7 +29,6 @@ public class Client {
     private HashMap<InetAddress, String> lastRoundNeighbours = new HashMap<>();
     private static PacketManager packetManager;
     private static Sender sender;
-    private ReentrantLock lock = new ReentrantLock();
 
     private MulticastSocket mcSocket;
 
@@ -48,7 +47,7 @@ public class Client {
         }
     }
 
-    HashMap<InetAddress, String> getLifeLongDestinations() {
+    synchronized HashMap<InetAddress, String> getLifeLongDestinations() {
         return lifeLongDests;
     }
 
@@ -96,7 +95,34 @@ public class Client {
         clientGUI = new ClientGUI(nickname, this);
     }
 
-    void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
+    synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
+        //Add the neighbour to the lastRoundNeighbours HashMap
+        if (!lastRoundNeighbours.containsKey(address)) {
+            lastRoundNeighbours.put(address, message.getNickname());
+        } else return;
+
+        //Add the neighbour to the lifeLongDests if it isn't already
+        if (!lifeLongDests.containsKey(address)) {
+            lifeLongDests.put(address, message.getNickname());
+        }
+
+        //Add the neighbour to the destination HashMap if it isn't already
+        if (!destinations.containsKey(address)) {
+            destinations.put(address, message.getNickname());
+            nextHop.put(address, address);
+        }
+
+        //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
+        for (InetAddress e : message.getDestinations().keySet()) {
+            if (!destinations.containsKey(e)) {
+                if (!e.equals(InetAddress.getLocalHost())) {
+                    destinations.put(e, message.getDestinations().get(e));
+                    nextHop.put(e, address);
+                }
+            }
+        }
+
+        /*
         lock.lock();
         this.lastRoundNeighbours.put(address, message.getNickname());
         for (InetAddress e : message.getDestinations().keySet()) {
@@ -116,11 +142,35 @@ public class Client {
             destinations.remove(e);
             nextHop.remove(e);
         }
-        lock.unlock();
+        lock.unlock();*/
     }
 
-    public void updateNeighbours() {
-        lock.lock();
+    public synchronized void updateNeighbours() {
+        List<InetAddress> droppedNeighbours = new ArrayList<>();
+        //Remove dropped neighbours from last transmission if they didn't broadcast
+        neighbours.keySet().stream().filter(e -> !lastRoundNeighbours.containsKey(e)).forEach(e -> {
+            destinations.remove(e);
+            nextHop.remove(e);
+            droppedNeighbours.add(e);
+        });
+
+        List<InetAddress> toRemoveDestinations = new ArrayList<>();
+        //Remove all the destinations that were associated with the dropped neighbours
+        for (InetAddress e : nextHop.keySet()) {
+            toRemoveDestinations.addAll(droppedNeighbours.stream().filter(i -> nextHop.get(e).equals(i)).map(i -> e).collect(Collectors.toList()));
+        }
+
+        for (InetAddress e : toRemoveDestinations) {
+            destinations.remove(e);
+            nextHop.remove(e);
+        }
+
+        //Set the last round neighbours to the current round neighbours
+        neighbours.clear();
+        neighbours.putAll(lastRoundNeighbours);
+        lastRoundNeighbours.clear();
+
+        /*lock.lock();
         neighbours.clear();
         neighbours.putAll(lastRoundNeighbours);
         lastRoundNeighbours.clear();
@@ -145,7 +195,7 @@ public class Client {
             clientGUI.removeClient(lifeLongDests.get(e));
             nextHop.remove(e);
         }
-        lock.unlock();
+        lock.unlock();*/
     }
 
     ClientGUI getClientGUI(){

@@ -34,6 +34,11 @@ class Receiver implements Runnable {
                 Packet packet = new Packet(buffer);
                 Message message = packet.getPayload();
 
+                // Ignore all packets with invalid fields.
+                if (isInvalidPacket(packet)) {
+                    continue;
+                }
+
                 // Ignore all packets sent by own host.
                 if (packet.getSourceAddress().equals(Inet4Address.getLocalHost())) {
                     continue;
@@ -44,6 +49,8 @@ class Receiver implements Runnable {
                     client.addNeighbour(packet.getSourceAddress(), ((BroadcastMessage) message));
                     continue;
                 }
+
+                System.out.println("TEST");
 
                 // Ignore packets that have been received earlier and are retransmitted by neighbours.
                 if (packetManager.isKnownPacket(packet)) {
@@ -91,6 +98,19 @@ class Receiver implements Runnable {
         Packet acknowledgementPacket = new Packet(Inet4Address.getLocalHost(), packet.getSourceAddress(), sequenceNumber, 3, message);
 
         sender.sendPkt(acknowledgementPacket.makeDatagramPacket());
+    }
+
+    private boolean isInvalidPacket(Packet packet) {
+        boolean isInvalid = false;
+
+        if (packet.getSourceAddress() == null) {
+            isInvalid = true;
+        }
+        if (packet.getDestinationAddress() == null) {
+            isInvalid = true;
+        }
+
+        return isInvalid;
     }
 
     private void retransmitPacket(Packet packet) throws IOException {

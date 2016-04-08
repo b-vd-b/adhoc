@@ -53,11 +53,10 @@ class Receiver implements Runnable {
                 }
 
                 // Parse packet if it has arrived at final destination, retransmit packet if not.
-                if (packet.getDestinationAddress().equals(Inet4Address.getLocalHost())) {
+                if (packet.getDestinationAddress().equals(Inet4Address.getLocalHost()) || packet.getPayload() instanceof GroupTextMessage) {
                     parsePacket(packet);
                 } else {
-                    packet.decreaseTimeToLive();
-                    sender.sendPkt(packet.makeDatagramPacket());
+                    retransmitPacket(packet);
                 }
 
             } catch (IOException | ClassNotFoundException e) {
@@ -77,6 +76,7 @@ class Receiver implements Runnable {
             String msg = ((GroupTextMessage) message).getMessage();
             client.getClientGUI().newGroupMessage(nickname, msg);
             System.out.println(((GroupTextMessage) message).getMessage());
+            retransmitPacket(packet);
         } else if (message instanceof PrivateTextMessage) {
             System.out.println("[Private Message] " + ((PrivateTextMessage) message).getMessage());
             acknowledgePacket(packet);
@@ -90,6 +90,11 @@ class Receiver implements Runnable {
         Packet acknowledgementPacket = new Packet(Inet4Address.getLocalHost(), packet.getSourceAddress(), sequenceNumber, 3, message);
 
         sender.sendPkt(acknowledgementPacket.makeDatagramPacket());
+    }
+
+    private void retransmitPacket(Packet packet) throws IOException {
+        packet.decreaseTimeToLive();
+        sender.sendPkt(packet.makeDatagramPacket());
     }
 
     public void stopReceiver() {

@@ -39,14 +39,15 @@ public class ClientGUI extends JPanel {
             if(e.getClickCount()==2){
                 String client = clientList.getSelectedValue();
 
-                if(privateChatTabs.containsKey(client)){
-                    chatPane.setSelectedComponent(privateChatTabs.get(client));
-                } else{
+                if(!privateChatTabs.containsKey(client)){
                     PrivateChatGUI privateChatGUI = new PrivateChatGUI(client, clientGUI);
                     privateChatTabs.put(client, privateChatGUI);
 
                     chatPane.addTab(client, privateChatGUI);
                     chatPane.setSelectedComponent(privateChatGUI);
+
+                } else{
+                    chatPane.setSelectedComponent(privateChatTabs.get(client));
                 }
             }
         }
@@ -100,7 +101,7 @@ public class ClientGUI extends JPanel {
     }
 
     public void newPrivateMessage(String nickname, String message){
-        if(!privateChatTabs.containsKey(client)){
+        if(!privateChatTabs.containsKey(nickname)){
             PrivateChatGUI privateChatGUI = new PrivateChatGUI(nickname, this);
             privateChatTabs.put(nickname, privateChatGUI);
 
@@ -116,8 +117,8 @@ public class ClientGUI extends JPanel {
 
     }
 
-    public void removeClient(InetAddress address){
-        clients.remove(address);
-        clientListModel.removeElement(address);
+    public void removeClient(String nickname){
+        clients.remove(nickname);
+        clientListModel.removeElement(nickname);
     }
 }

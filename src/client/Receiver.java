@@ -72,12 +72,13 @@ class Receiver implements Runnable {
 
         if (message instanceof AckMessage) {
             packetManager.parseAcknowledgement(packet);
-
-        } else if (message instanceof PrivateTextMessage) {
+        } else if (message instanceof GroupTextMessage) {
             String nickname = client.getLifeLongDestinations().get(packet.getSourceAddress());
-            String msg = ((PrivateTextMessage) message).getMessage();
+            String msg = ((GroupTextMessage) message).getMessage();
             client.getClientGUI().newGroupMessage(nickname, msg);
-            System.out.println(((PrivateTextMessage) message).getMessage());
+            System.out.println(((GroupTextMessage) message).getMessage());
+        } else if (message instanceof PrivateTextMessage) {
+            System.out.println("[Private Message] " + ((PrivateTextMessage) message).getMessage());
             acknowledgePacket(packet);
         }
     }

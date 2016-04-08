@@ -127,8 +127,8 @@ public class Client {
         neighbours.keySet().stream().filter(e -> !destinations.containsKey(e)).forEach(e -> {
             destinations.put(e, neighbours.get(e));
             lifeLongDests.put(e, neighbours.get(e));
-            if (!clientGUI.getClients().containsKey(destinations.get(e))) {
-                clientGUI.addClient(destinations.get(e), e);
+            if (!clientGUI.getClients().containsKey(lifeLongDests.get(e))) {
+                clientGUI.addClient(lifeLongDests.get(e), e);
             }
             nextHop.put(e, e);
         });

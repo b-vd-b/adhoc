@@ -104,9 +104,6 @@ public class Client {
                 if (!e.equals(InetAddress.getLocalHost())) {
                     destinations.put(address, message.getNickname());
                     lifeLongDests.put(address, message.getNickname());
-                    if(!clientGUI.getClients().containsKey(message.getNickname())){
-                        clientGUI.addClient(message.getNickname(), address);
-                    }
                     nextHop.put(e, address);
                 }
             }
@@ -117,7 +114,6 @@ public class Client {
 
         for (InetAddress e : toRemove) {
             destinations.remove(e);
-            clientGUI.removeClient(lifeLongDests.get(e));
             nextHop.remove(e);
         }
         lock.unlock();

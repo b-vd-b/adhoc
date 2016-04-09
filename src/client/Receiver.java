@@ -4,7 +4,6 @@ import datatype.*;
 
 import java.io.*;
 import java.net.DatagramPacket;
-import java.net.Inet4Address;
 import java.net.MulticastSocket;
 
 class Receiver implements Runnable {
@@ -95,7 +94,7 @@ class Receiver implements Runnable {
         Message message = new AckMessage(acknowledgementNumber);
         Packet acknowledgementPacket = new Packet(Client.LOCAL_ADDRESS, packet.getSourceAddress(), sequenceNumber, 3, message);
 
-        sender.sendPkt(acknowledgementPacket.makeDatagramPacket());
+        sender.sendDatagramPacket(acknowledgementPacket.makeDatagramPacket());
     }
 
     private boolean isInvalidPacket(Packet packet) {
@@ -116,7 +115,7 @@ class Receiver implements Runnable {
 
         // Only send packets that are still allowed to be retransmitted.
         if (packet.getTimeToLive() > 0) {
-            sender.sendPkt(packet.makeDatagramPacket());
+            sender.sendDatagramPacket(packet.makeDatagramPacket());
         }
     }
 

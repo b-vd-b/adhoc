@@ -54,7 +54,7 @@ public class Client {
 
         new Thread(new KeepAlive(mcSocket, nickname, this, packetManager, encryption.getPublicKey())).start();
 
-        sender = new Sender(mcSocket, packetManager);
+        sender = new Sender(mcSocket);
 
 
         try {
@@ -94,14 +94,14 @@ public class Client {
     public void sendGroupTextMessage(String message) throws IOException {
         Message message1 = new GroupTextMessage(message, "");
         Packet packet = new Packet(LOCAL_ADDRESS, GROUP_CHAT_ADDRESS, packetManager.getSequenceNumber(InetAddress.getByName(MULTICAST_ADDRESS)), 3, message1);
-        sender.sendPkt(packet.makeDatagramPacket());
+        sender.sendDatagramPacket(packet.makeDatagramPacket());
     }
 
     public void sendPrivateTextMessage(String message, String nickname) throws IOException {
         Message message1 = new PrivateTextMessage(false, message, "");
         Packet packet = new Packet(LOCAL_ADDRESS, clientGUI.getClients().get(nickname), packetManager.getSequenceNumber(InetAddress.getByName(MULTICAST_ADDRESS)), 3, message1);
         packetManager.addSentPacket(packet);
-        sender.sendPkt(packet.makeDatagramPacket());
+        sender.sendDatagramPacket(packet.makeDatagramPacket());
     }
 
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {

@@ -4,12 +4,14 @@ import client.gui.ClientGUI;
 import client.gui.LoginGUI;
 import client.routing.NodeUpdater;
 import datatype.*;
+import util.Encryption;
 
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,12 +25,14 @@ public class Client {
 
     private ClientGUI clientGUI;
     private HashMap<InetAddress, String> lifeLongDests = new HashMap<>();
+    private HashMap<InetAddress, PublicKey> encryptionKeys = new HashMap<>();
     private HashMap<InetAddress, String> destinations = new HashMap<>();
     private HashMap<InetAddress, InetAddress> nextHop = new HashMap<>();
     private HashMap<InetAddress, String> neighbours = new HashMap<>();
     private HashMap<InetAddress, String> lastRoundNeighbours = new HashMap<>();
     private static PacketManager packetManager;
     private static Sender sender;
+    private Encryption encryption;
 
     private MulticastSocket mcSocket;
 
@@ -69,6 +73,8 @@ public class Client {
     }
 
     public Client(String nickname) {
+        encryption = new Encryption();
+
         InetAddress group;
         try {
             group = InetAddress.getByName(INETADDRESS);
@@ -80,7 +86,7 @@ public class Client {
 
         packetManager = new PacketManager();
 
-        new Thread(new KeepAlive(mcSocket, nickname, this, packetManager)).start();
+        new Thread(new KeepAlive(mcSocket, nickname, this, packetManager, encryption.getPublicKey())).start();
 
         sender = new Sender(mcSocket, packetManager);
 
@@ -106,10 +112,11 @@ public class Client {
             lifeLongDests.put(address, message.getNickname());
         }
 
-        //Add the neighbour to the destination HashMap if it isn't already
+        //Add the neighbour to the destination, nextHop and publicKeys HashMap if it isn't already
         if (!destinations.containsKey(address)) {
             destinations.put(address, message.getNickname());
             nextHop.put(address, address);
+            encryptionKeys.put(address, message.getPublicKey());
         }
 
         //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
@@ -151,6 +158,7 @@ public class Client {
         neighbours.keySet().stream().filter(e -> !lastRoundNeighbours.containsKey(e)).forEach(e -> {
             destinations.remove(e);
             nextHop.remove(e);
+            encryptionKeys.remove(e);
             droppedNeighbours.add(e);
         });
 
@@ -163,6 +171,7 @@ public class Client {
         for (InetAddress e : toRemoveDestinations) {
             destinations.remove(e);
             nextHop.remove(e);
+            encryptionKeys.remove(e);
         }
 
         //Set the last round neighbours to the current round neighbours
@@ -200,5 +209,13 @@ public class Client {
 
     ClientGUI getClientGUI(){
         return clientGUI;
+    }
+
+    public HashMap<InetAddress, PublicKey> getEncryptionKeys() {
+        return encryptionKeys;
+    }
+
+    public Encryption getEncryption() {
+        return encryption;
     }
 }

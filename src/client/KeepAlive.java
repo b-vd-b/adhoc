@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.MulticastSocket;
+import java.security.PublicKey;
 
 class KeepAlive implements Runnable {
 
@@ -15,16 +16,18 @@ class KeepAlive implements Runnable {
     private String nickname;
     private Client client;
     private PacketManager packetManager;
+    private PublicKey publicKey;
 
     /**
      * Sending a packet to let other clients know that this client is still in the network and reachable.
      * @param mcSocket the socket the thread must broadcast on
      */
-    KeepAlive(MulticastSocket mcSocket, String nickname, Client client, PacketManager packetManager)  {
+    KeepAlive(MulticastSocket mcSocket, String nickname, Client client, PacketManager packetManager, PublicKey publicKey)  {
         this.mcSocket = mcSocket;
         this.nickname = nickname;
         this.client = client;
         this.packetManager = packetManager;
+        this.publicKey = publicKey;
     }
 
     @Override
@@ -47,7 +50,7 @@ class KeepAlive implements Runnable {
     }
 
     private DatagramPacket makeBroadcastPacket() throws IOException {
-        Packet packet = new Packet(Inet4Address.getLocalHost(), Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname, client.getDestinations()));
+        Packet packet = new Packet(Inet4Address.getLocalHost(), Inet4Address.getLocalHost(), -1 , 3, new BroadcastMessage(nickname, client.getDestinations(), publicKey));
         return packet.makeDatagramPacket();
     }
 }

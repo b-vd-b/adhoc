@@ -57,13 +57,4 @@ public class Encryption {
         System.out.println("Not supposed to get here");
         return null;
     }
-
-    public static void main(String[] args) {
-        String message = "Dit is een test";
-        Encryption encryption = new Encryption();
-        System.out.println("Message: " + message);
-        String encryptedMessage = encryption.encryptMessage(message, encryption.getPublicKey());
-        System.out.println("Encrypted message: " + encryptedMessage);
-        System.out.println("Decrypted message: " + encryption.decryptMessage(encryptedMessage));
-    }
 }

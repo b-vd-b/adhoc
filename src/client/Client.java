@@ -7,7 +7,6 @@ import datatype.*;
 import util.Encryption;
 
 import java.io.IOException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
@@ -15,14 +14,19 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class Client {
 
-    public static final String INETADDRESS = "228.1.1.1";
+    public static final String MULTICAST_ADDRESS = "228.1.1.1";
     public static final int PORT = 6789;
+    private static final boolean DEBUG_MODE = false;
 
+    static InetAddress LOCAL_ADDRESS;
+    private static InetAddress GROUP_CHAT_ADDRESS;
+    private static PacketManager packetManager;
+    private static Sender sender;
     private ClientGUI clientGUI;
     private HashMap<InetAddress, String> lifeLongDests = new HashMap<>();
     private HashMap<InetAddress, PublicKey> encryptionKeys = new HashMap<>();
@@ -30,54 +34,16 @@ public class Client {
     private HashMap<InetAddress, InetAddress> nextHop = new HashMap<>();
     private HashMap<InetAddress, String> neighbours = new HashMap<>();
     private HashMap<InetAddress, String> lastRoundNeighbours = new HashMap<>();
-    private static PacketManager packetManager;
-    private static Sender sender;
     private Encryption encryption;
 
     private MulticastSocket mcSocket;
-
-    public static void main(String[] args) throws IOException {
-        new LoginGUI();
-
-        //Client client = new Client("hoi");
-        Scanner scanner = new Scanner(System.in);
-        while (scanner.hasNext()) {
-            String message = scanner.nextLine();
-            //System.out.println(message);
-            Message message1 = new PrivateTextMessage(false, message, "");
-            Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.0"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
-            packetManager.addSentPacket(packet);
-            sender.sendPkt(packet.makeDatagramPacket());
-        }
-    }
-
-    synchronized HashMap<InetAddress, String> getLifeLongDestinations() {
-        return lifeLongDests;
-    }
-
-    HashMap<InetAddress, String> getDestinations() {
-        return destinations;
-    }
-
-    public void sendGroupTextMessage(String message) throws IOException {
-        Message message1 = new GroupTextMessage(message, "");
-        Packet packet = new Packet(Inet4Address.getLocalHost(), InetAddress.getByName("192.168.5.0"), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
-        sender.sendPkt(packet.makeDatagramPacket());
-    }
-
-    public void sendPrivateTextMessage(String message, String nickname) throws IOException {
-        Message message1 = new PrivateTextMessage(false, message, "");
-        Packet packet = new Packet(Inet4Address.getLocalHost(), clientGUI.getClients().get(nickname), packetManager.getSequenceNumber(InetAddress.getByName(INETADDRESS)), 4, message1);
-        packetManager.addSentPacket(packet);
-        sender.sendPkt(packet.makeDatagramPacket());
-    }
 
     public Client(String nickname) {
         encryption = new Encryption();
 
         InetAddress group;
         try {
-            group = InetAddress.getByName(INETADDRESS);
+            group = InetAddress.getByName(MULTICAST_ADDRESS);
             mcSocket = new MulticastSocket(PORT);
             mcSocket.joinGroup(group);
         } catch (IOException e) {
@@ -101,6 +67,43 @@ public class Client {
         clientGUI = new ClientGUI(nickname, this);
     }
 
+    public static void main(String[] args) throws IOException {
+        if (DEBUG_MODE) {
+            Random random = new Random();
+            LOCAL_ADDRESS = InetAddress.getByName(random.nextInt(256)
+                    + "." + random.nextInt(256)
+                    + "." + random.nextInt(256)
+                    + "." + random.nextInt(256)
+            );
+        } else {
+            LOCAL_ADDRESS = InetAddress.getLocalHost();
+        }
+
+        GROUP_CHAT_ADDRESS = InetAddress.getByName("192.168.5.0");
+        new LoginGUI();
+    }
+
+    synchronized HashMap<InetAddress, String> getLifeLongDestinations() {
+        return lifeLongDests;
+    }
+
+    HashMap<InetAddress, String> getDestinations() {
+        return destinations;
+    }
+
+    public void sendGroupTextMessage(String message) throws IOException {
+        Message message1 = new GroupTextMessage(message, "");
+        Packet packet = new Packet(LOCAL_ADDRESS, GROUP_CHAT_ADDRESS, packetManager.getSequenceNumber(InetAddress.getByName(MULTICAST_ADDRESS)), 3, message1);
+        sender.sendPkt(packet.makeDatagramPacket());
+    }
+
+    public void sendPrivateTextMessage(String message, String nickname) throws IOException {
+        Message message1 = new PrivateTextMessage(false, message, "");
+        Packet packet = new Packet(LOCAL_ADDRESS, clientGUI.getClients().get(nickname), packetManager.getSequenceNumber(InetAddress.getByName(MULTICAST_ADDRESS)), 3, message1);
+        packetManager.addSentPacket(packet);
+        sender.sendPkt(packet.makeDatagramPacket());
+    }
+
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
         //Add the neighbour to the lastRoundNeighbours HashMap
         if (!lastRoundNeighbours.containsKey(address)) {
@@ -120,14 +123,10 @@ public class Client {
         }
 
         //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
-        for (InetAddress e : message.getDestinations().keySet()) {
-            if (!destinations.containsKey(e)) {
-                if (!e.equals(InetAddress.getLocalHost())) {
-                    destinations.put(e, message.getDestinations().get(e));
-                    nextHop.put(e, address);
-                }
-            }
-        }
+        message.getDestinations().keySet().stream().filter(e -> !destinations.containsKey(e)).filter(e -> !e.equals(Client.LOCAL_ADDRESS)).forEach(e -> {
+            destinations.put(e, message.getDestinations().get(e));
+            nextHop.put(e, address);
+        });
 
         /*
         lock.lock();
@@ -207,7 +206,7 @@ public class Client {
         lock.unlock();*/
     }
 
-    ClientGUI getClientGUI(){
+    ClientGUI getClientGUI() {
         return clientGUI;
     }
 

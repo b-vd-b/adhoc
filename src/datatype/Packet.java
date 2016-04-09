@@ -72,6 +72,6 @@ public class Packet implements Serializable {
         byte[] buf = Arrays.copyOf(bos.toByteArray(),bos.toByteArray().length);
         out.close();
 
-        return new DatagramPacket(buf, buf.length, InetAddress.getByName(Client.INETADDRESS), Client.PORT);
+        return new DatagramPacket(buf, buf.length, InetAddress.getByName(Client.MULTICAST_ADDRESS), Client.PORT);
     }
 }

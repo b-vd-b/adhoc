@@ -40,7 +40,7 @@ class Receiver implements Runnable {
                 }
 
                 // Ignore all packets sent by own host.
-                if (packet.getSourceAddress().equals(Inet4Address.getLocalHost())) {
+                if (packet.getSourceAddress().equals(Client.LOCAL_ADDRESS)) {
                     continue;
                 }
 
@@ -58,7 +58,7 @@ class Receiver implements Runnable {
                 }
 
                 // Parse packet if it has arrived at final destination, retransmit packet if not.
-                if (packet.getDestinationAddress().equals(Inet4Address.getLocalHost()) || packet.getPayload() instanceof GroupTextMessage) {
+                if (packet.getDestinationAddress().equals(Client.LOCAL_ADDRESS) || packet.getPayload() instanceof GroupTextMessage) {
                     parsePacket(packet);
                 } else {
                     retransmitPacket(packet);
@@ -93,7 +93,7 @@ class Receiver implements Runnable {
         long sequenceNumber = packet.getSequenceNumber();
         long acknowledgementNumber = packet.getSequenceNumber() + packet.getLength();
         Message message = new AckMessage(acknowledgementNumber);
-        Packet acknowledgementPacket = new Packet(Inet4Address.getLocalHost(), packet.getSourceAddress(), sequenceNumber, 3, message);
+        Packet acknowledgementPacket = new Packet(Client.LOCAL_ADDRESS, packet.getSourceAddress(), sequenceNumber, 3, message);
 
         sender.sendPkt(acknowledgementPacket.makeDatagramPacket());
     }

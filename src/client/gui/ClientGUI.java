@@ -86,6 +86,7 @@ public class ClientGUI extends JPanel {
 
         mainChat.add(splitPane, BorderLayout.CENTER);
         mainChat.setSize(800,600);
+        mainChat.setLocationRelativeTo(null);
         mainChat.setVisible(true);
         mainChat.pack();
 

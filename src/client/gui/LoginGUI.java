@@ -22,8 +22,10 @@ public class LoginGUI extends JDialog implements ActionListener, PropertyChangeL
     private JOptionPane optionPane;
 
     public LoginGUI(){
+        super(new DummyFrame("Chat Login"));
         setTitle("Login");
         setMinimumSize(new Dimension(400,200));
+        setLocationRelativeTo(null);
         inputField = new JTextField(10);
         Object[] array = {question, inputField};
         Object[] options = {btn1,btn2};
@@ -84,7 +86,17 @@ public class LoginGUI extends JDialog implements ActionListener, PropertyChangeL
         }
     }
 
-    public void exit(){
+    private void exit(){
+        ((DummyFrame) getParent()).dispose();
         dispose();
+    }
+}
+
+class DummyFrame extends JFrame {
+    DummyFrame(String title) {
+        super(title);
+        setUndecorated(true);
+        setVisible(true);
+        setLocationRelativeTo(null);
     }
 }

@@ -1,44 +1,69 @@
 package util;
 
-import javax.crypto.*;
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.*;
+import java.util.Base64;
 
 public class Encryption {
 
-    public Encryption() throws NoSuchAlgorithmException, InvalidKeyException, NoSuchPaddingException, IOException, IllegalBlockSizeException, BadPaddingException, ClassNotFoundException {
-        // Get an instance of the RSA key generator
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
-        // Generate the keys — might take sometime on slow computers
-        KeyPair myPair = kpg.generateKeyPair();
+    private static final String ALGORITHM = "RSA";
+    private Cipher cipher;
+    private PublicKey publicKey;
+    private PrivateKey privateKey;
 
-        // Get an instance of the Cipher for RSA encryption/decryption
-        Cipher c = Cipher.getInstance("RSA");
-        // Initiate the Cipher, telling it that it is going to Encrypt, giving it the public key
-        c.init(Cipher.ENCRYPT_MODE, myPair.getPublic());
-
-        myPair.getPublic();
-        // Create a secret message
-        String myMessage = "Je moeder";
-        // Encrypt that message using a new SealedObject and the Cipher we created before
-        SealedObject myEncryptedMessage= new SealedObject( myMessage, c);
-
-        String encryptedMessage = myEncryptedMessage.toString();
-
-        // Get an instance of the Cipher for RSA encryption/decryption
-        Cipher dec = Cipher.getInstance("RSA");
-        // Initiate the Cipher, telling it that it is going to Decrypt, giving it the private key
-        dec.init(Cipher.DECRYPT_MODE, myPair.getPrivate());
-
-        // Tell the SealedObject we created before to decrypt the data and return it
-        String message = (String) myEncryptedMessage.getObject(dec);
-        System.out.println("foo = "+message);
+    public Encryption() {
+        try {
+            KeyPair keyPair = KeyPairGenerator.getInstance(ALGORITHM).generateKeyPair();
+            publicKey = keyPair.getPublic();
+            privateKey = keyPair.getPrivate();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        try {
+            cipher = Cipher.getInstance(ALGORITHM);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static void main(String[] args) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException, ClassNotFoundException {
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public String encryptMessage(String message, PublicKey key) {
+        //Encrypt using the key given
+        try {
+            cipher.init(Cipher.ENCRYPT_MODE, key);
+            byte[] encryptedMessage = cipher.doFinal(message.getBytes());
+            return new String(Base64.getEncoder().encode(encryptedMessage));
+        } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Not supposed to get here");
+        return null;
+    }
+
+    public String decryptMessage(String message) {
+        try {
+            cipher.init(Cipher.DECRYPT_MODE, privateKey);
+            byte[] decryptedMessage = cipher.doFinal(Base64.getDecoder().decode(message.getBytes()));
+            return new String(decryptedMessage);
+        } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Not supposed to get here");
+        return null;
+    }
+
+    public static void main(String[] args) {
+        String message = "Dit is een test";
         Encryption encryption = new Encryption();
+        System.out.println("Message: " + message);
+        String encryptedMessage = encryption.encryptMessage(message, encryption.getPublicKey());
+        System.out.println("Encrypted message: " + encryptedMessage);
+        System.out.println("Decrypted message: " + encryption.decryptMessage(encryptedMessage));
     }
 }

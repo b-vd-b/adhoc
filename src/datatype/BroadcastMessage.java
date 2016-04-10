@@ -8,9 +8,9 @@ public class BroadcastMessage extends Message {
 
     private String nickname;
     private HashMap<InetAddress,String> destinations;
-    private PublicKey publicKey;
+    private HashMap<InetAddress, PublicKey> publicKey;
 
-    public BroadcastMessage(String nickname, HashMap<InetAddress,String> dest, PublicKey publicKey) {
+    public BroadcastMessage(String nickname, HashMap<InetAddress,String> dest, HashMap<InetAddress, PublicKey> publicKey) {
         destinations = new HashMap<>();
         this.destinations = dest;
         this.nickname = nickname;
@@ -21,7 +21,7 @@ public class BroadcastMessage extends Message {
         return nickname;
     }
 
-    public PublicKey getPublicKey() {
+    public HashMap<InetAddress, PublicKey> getPublicKeys() {
         return publicKey;
     }
 

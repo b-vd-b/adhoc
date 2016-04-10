@@ -50,12 +50,17 @@ public class Client {
             e.printStackTrace();
         }
 
+        try {
+            encryptionKeys.put(InetAddress.getLocalHost(), encryption.getPublicKey());
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
         packetManager = new PacketManager();
 
-        new Thread(new KeepAlive(mcSocket, nickname, this, packetManager, encryption.getPublicKey())).start();
+        new Thread(new KeepAlive(mcSocket, nickname, this, packetManager)).start();
 
         sender = new Sender(mcSocket);
-
 
         try {
             new Thread(new Receiver(this, sender, mcSocket, packetManager)).start();
@@ -98,7 +103,8 @@ public class Client {
     }
 
     public void sendPrivateTextMessage(String message, String nickname) throws IOException {
-        Message message1 = new PrivateTextMessage(false, message, "");
+        String encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(clientGUI.getClients().get(nickname)));
+        Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
         Packet packet = new Packet(LOCAL_ADDRESS, clientGUI.getClients().get(nickname), packetManager.getSequenceNumber(InetAddress.getByName(MULTICAST_ADDRESS)), 3, message1);
         packetManager.addSentPacket(packet);
         sender.sendDatagramPacket(packet.makeDatagramPacket());
@@ -119,7 +125,7 @@ public class Client {
         if (!destinations.containsKey(address)) {
             destinations.put(address, message.getNickname());
             nextHop.put(address, address);
-            encryptionKeys.put(address, message.getPublicKey());
+            clientGUI.addClient(message.getNickname(), address);
         }
 
         //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
@@ -128,6 +134,10 @@ public class Client {
             nextHop.put(e, address);
         });
 
+        //Add public keys of the neighbours of the received neighbour in own HashMap
+        message.getPublicKeys().keySet().stream().filter(e -> !encryptionKeys.containsKey(e)).forEach(e -> {
+            encryptionKeys.put(e, message.getPublicKeys().get(e));
+        });
         /*
         lock.lock();
         this.lastRoundNeighbours.put(address, message.getNickname());
@@ -168,6 +178,7 @@ public class Client {
         }
 
         for (InetAddress e : toRemoveDestinations) {
+            clientGUI.removeClient(destinations.get(e));
             destinations.remove(e);
             nextHop.remove(e);
             encryptionKeys.remove(e);

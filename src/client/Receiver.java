@@ -82,7 +82,12 @@ class Receiver implements Runnable {
             retransmitPacket(packet);
         } else if (message instanceof PrivateTextMessage) {
             String nickname = client.getLifeLongDestinations().get(packet.getSourceAddress());
-            String msg = ((PrivateTextMessage) message).getMessage();
+            String msg;
+            if (((PrivateTextMessage) message).isEncrypted()) {
+                msg = client.getEncryption().decryptMessage(((PrivateTextMessage) message).getMessage());
+            } else {
+                msg = ((PrivateTextMessage) message).getMessage();
+            }
             client.getClientGUI().newPrivateMessage(nickname, msg);
             acknowledgePacket(packet);
         }

@@ -21,7 +21,7 @@ public class Client {
 
     public static final String MULTICAST_ADDRESS = "228.1.1.1";
     public static final int PORT = 6789;
-    private static final boolean DEBUG_MODE = false;
+    private static final boolean DEBUG_MODE = true;
 
     static InetAddress LOCAL_ADDRESS;
     private static InetAddress GROUP_CHAT_ADDRESS;
@@ -101,7 +101,8 @@ public class Client {
     public void sendPrivateTextMessage(String message, String nickname) throws IOException {
         String encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(clientGUI.getClients().get(nickname)));
         Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
-        Packet packet = new Packet(LOCAL_ADDRESS, clientGUI.getClients().get(nickname), packetManager.getSequenceNumber(InetAddress.getByName(MULTICAST_ADDRESS)), 3, message1);
+        InetAddress destination = clientGUI.getClients().get(nickname);
+        Packet packet = new Packet(LOCAL_ADDRESS, destination, packetManager.getSequenceNumber(destination), 3, message1);
         packetManager.addSentPacket(packet);
         sender.sendDatagramPacket(packet.makeDatagramPacket());
     }

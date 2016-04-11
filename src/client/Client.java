@@ -113,7 +113,7 @@ public class Client {
 
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
         //Check to see if the broadcastMessage is valid
-        if (message.equals(null) || address.equals(null)) {
+        if (message == null || address == null) {
             return;
         }
         //Add the neighbour to the lastRoundNeighbours HashMap

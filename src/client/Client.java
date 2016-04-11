@@ -50,11 +50,7 @@ public class Client {
             e.printStackTrace();
         }
 
-        try {
-            encryptionKeys.put(InetAddress.getLocalHost(), encryption.getPublicKey());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
+        encryptionKeys.put(LOCAL_ADDRESS, encryption.getPublicKey());
 
         packetManager = new PacketManager();
 

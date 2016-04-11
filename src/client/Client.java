@@ -50,11 +50,7 @@ public class Client {
             e.printStackTrace();
         }
 
-        try {
-            encryptionKeys.put(InetAddress.getLocalHost(), encryption.getPublicKey());
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
+        encryptionKeys.put(LOCAL_ADDRESS, encryption.getPublicKey());
 
         packetManager = new PacketManager();
 
@@ -104,10 +100,14 @@ public class Client {
 
     public void sendPrivateTextMessage(String message, String nickname) throws IOException {
         String encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(clientGUI.getClients().get(nickname)));
-        Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
-        Packet packet = new Packet(LOCAL_ADDRESS, clientGUI.getClients().get(nickname), packetManager.getSequenceNumber(InetAddress.getByName(MULTICAST_ADDRESS)), 3, message1);
-        packetManager.addSentPacket(packet);
-        sender.sendDatagramPacket(packet.makeDatagramPacket());
+        if (encryptedMessage == null) {
+            clientGUI.newPrivateMessage(nickname, "Error! something went wrong, try again");
+        } else {
+            Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
+            Packet packet = new Packet(LOCAL_ADDRESS, clientGUI.getClients().get(nickname), packetManager.getSequenceNumber(InetAddress.getByName(MULTICAST_ADDRESS)), 3, message1);
+            packetManager.addSentPacket(packet);
+            sender.sendDatagramPacket(packet.makeDatagramPacket());
+        }
     }
 
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
@@ -137,6 +137,8 @@ public class Client {
         //Add public keys of the neighbours of the received neighbour in own HashMap
         message.getPublicKeys().keySet().stream().filter(e -> !encryptionKeys.containsKey(e)).forEach(e -> {
             encryptionKeys.put(e, message.getPublicKeys().get(e));
+            System.out.println("inetaddresses: " + encryptionKeys.keySet().toString());
+            System.out.println("keys: " + encryptionKeys.values().toString());
         });
         /*
         lock.lock();

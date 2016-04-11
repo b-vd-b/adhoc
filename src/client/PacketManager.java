@@ -8,19 +8,20 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 class PacketManager {
 
     private HashMap<InetAddress, List<Packet>> receivedPackets;
     private HashMap<InetAddress, List<Packet>> sentPackets;
     private HashMap<InetAddress, Long> sequenceNumbers;
-    private List<Packet> unacknowledgedPackets;
+    private HashMap<Packet, Integer> unacknowledgedPackets;
 
     PacketManager() {
         this.receivedPackets = new HashMap<>();
         this.sentPackets = new HashMap<>();
         this.sequenceNumbers = new HashMap<>();
-        this.unacknowledgedPackets = new ArrayList<>();
+        this.unacknowledgedPackets = new HashMap<>();
     }
 
     void addReceivedPacket(Packet packet) {
@@ -36,17 +37,17 @@ class PacketManager {
     }
 
     private void addUnacknowledgedPacket(Packet packet) {
-        unacknowledgedPackets.add(packet);
+        unacknowledgedPackets.put(packet, 0);
     }
 
-    List<Packet> getUnacknowledgedPackets() {
+    Map<Packet, Integer> getUnacknowledgedPackets() {
         return unacknowledgedPackets;
     }
 
     void parseAcknowledgement(Packet ack) throws IOException {
         Packet acknowledgedPacket = null;
 
-        for (Packet packet : unacknowledgedPackets) {
+        for (Packet packet : unacknowledgedPackets.keySet()) {
             if (packet.getDestinationAddress().equals(ack.getSourceAddress())) {
                 if (((AckMessage) ack.getPayload()).getAckNumber() == packet.getSequenceNumber() + packet.getLength()) {
                     acknowledgedPacket = packet;

@@ -58,7 +58,7 @@ public class Client {
 
         new Thread(new KeepAlive(mcSocket, nickname, this, packetManager)).start();
 
-        sender = new Sender(mcSocket);
+        sender = new Sender(mcSocket, packetManager);
 
         try {
             new Thread(new Receiver(this, sender, mcSocket, packetManager)).start();
@@ -90,25 +90,24 @@ public class Client {
         return destinations;
     }
 
-    public void sendGroupTextMessage(String message) throws IOException {
-        Message message1 = new GroupTextMessage(message, "");
-        Packet packet = new Packet(LOCAL_ADDRESS, GROUP_CHAT_ADDRESS, packetManager.getSequenceNumber(InetAddress.getByName(MULTICAST_ADDRESS)), 3, message1);
-        sender.sendDatagramPacket(packet.makeDatagramPacket());
+    public void sendGroupTextMessage(String contents) throws IOException {
+        Message message = new GroupTextMessage(contents, "");
+        for (InetAddress destination : clientGUI.getClients().values()) {
+            sender.sendMessage(destination, message);
+        }
     }
 
-    public void sendPrivateTextMessage(String message, String nickname) throws IOException {
+    public void sendPrivateTextMessage(String contents, String nickname) throws IOException {
         String encryptedMessage;
         try {
-            encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(clientGUI.getClients().get(nickname)));
+            encryptedMessage = encryption.encryptMessage(contents, encryptionKeys.get(clientGUI.getClients().get(nickname)));
         } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
             clientGUI.newPrivateMessage("SYSTEM", "Sorry something went wrong, please try again later");
             return;
         }
-        Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
+        Message message = new PrivateTextMessage(true, encryptedMessage, "");
         InetAddress destination = clientGUI.getClients().get(nickname);
-        Packet packet = new Packet(LOCAL_ADDRESS, destination, packetManager.getSequenceNumber(destination), 3, message1);
-        packetManager.addSentPacket(packet);
-        sender.sendDatagramPacket(packet.makeDatagramPacket());
+        sender.sendMessage(destination, message);
     }
 
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {

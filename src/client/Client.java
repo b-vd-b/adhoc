@@ -107,8 +107,8 @@ public class Client {
 
     public void sendPrivateTextMessage(String message, InetAddress address) throws IOException {
         String encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(address));
-        if (encryptedMessage == null) {
-            clientGUI.newPrivateMessage(address, "Error! something went wrong, try again");
+        if (encryptedMessage == "") {
+            clientGUI.newPrivateMessage(address, "Error! something went wrong, please try again");
         } else {
             Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
             Packet packet = new Packet(LOCAL_ADDRESS, address, packetManager.getSequenceNumber(address), 3, message1);
@@ -146,32 +146,7 @@ public class Client {
         });
 
         //Add public keys of the neighbours of the received neighbour in own HashMap
-        message.getPublicKeys().keySet().stream().filter(e -> !encryptionKeys.containsKey(e)).forEach(e -> {
-            encryptionKeys.put(e, message.getPublicKeys().get(e));
-            System.out.println("inetaddresses: " + encryptionKeys.keySet().toString());
-            System.out.println("keys: " + encryptionKeys.values().toString());
-        });
-        /*
-        lock.lock();
-        this.lastRoundNeighbours.put(address, message.getNickname());
-        for (InetAddress e : message.getDestinations().keySet()) {
-            if (!destinations.containsKey(e)) {
-                if (!e.equals(InetAddress.getLocalHost())) {
-                    destinations.put(address, message.getNickname());
-                    lifeLongDests.put(address, message.getNickname());
-                    nextHop.put(e, address);
-                }
-            }
-        }
-
-        List<InetAddress> toRemove = new ArrayList<>();
-        nextHop.keySet().stream().filter(e -> !message.getDestinations().containsKey(e)).filter(e -> nextHop.get(e).equals(address)).forEach(toRemove::add);
-
-        for (InetAddress e : toRemove) {
-            destinations.remove(e);
-            nextHop.remove(e);
-        }
-        lock.unlock();*/
+        message.getPublicKeys().keySet().stream().filter(e -> !encryptionKeys.containsKey(e)).forEach(e -> encryptionKeys.put(e, message.getPublicKeys().get(e)));
     }
 
     public synchronized void updateNeighbours() {
@@ -201,33 +176,6 @@ public class Client {
         neighbours.clear();
         neighbours.putAll(lastRoundNeighbours);
         lastRoundNeighbours.clear();
-
-        /*lock.lock();
-        neighbours.clear();
-        neighbours.putAll(lastRoundNeighbours);
-        lastRoundNeighbours.clear();
-        neighbours.keySet().stream().filter(e -> !destinations.containsKey(e)).forEach(e -> {
-            destinations.put(e, neighbours.get(e));
-            lifeLongDests.put(e, neighbours.get(e));
-            if (!clientGUI.getClients().containsKey(lifeLongDests.get(e))) {
-                clientGUI.addClient(lifeLongDests.get(e), e);
-            }
-            nextHop.put(e, e);
-        });
-
-        List<InetAddress> toRemove = new ArrayList<>();
-        destinations.keySet().stream().filter(e -> !neighbours.containsKey(e)).forEach(e -> {
-            if (nextHop.get(e).equals(e)) {
-                toRemove.add(e);
-            }
-        });
-
-        for (InetAddress e : toRemove) {
-            destinations.remove(e);
-            clientGUI.removeClient(lifeLongDests.get(e));
-            nextHop.remove(e);
-        }
-        lock.unlock();*/
     }
 
     public Color generateColor(){

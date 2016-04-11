@@ -13,6 +13,7 @@ class KeepAlive implements Runnable {
 
     private MulticastSocket mcSocket;
     private static final int SLEEP = 500;
+    private static final int MAXIMUM_RETRANSMIT_ATTEMPTS = 3;
     private String nickname;
     private Client client;
     private PacketManager packetManager;
@@ -37,9 +38,16 @@ class KeepAlive implements Runnable {
                     Thread.sleep(SLEEP);
                 }
 
-                // Retransmit unacknowledged packets.
-                for (Packet packet : packetManager.getUnacknowledgedPackets()) {
-                    mcSocket.send(packet.makeDatagramPacket());
+                // Retransmit unacknowledged packets up to three times.
+                for (Packet packet : packetManager.getUnacknowledgedPackets().keySet()) {
+                    int attempts = packetManager.getUnacknowledgedPackets().get(packet);
+
+                    if (attempts == MAXIMUM_RETRANSMIT_ATTEMPTS) {
+                        packetManager.getUnacknowledgedPackets().remove(packet);
+                    } else {
+                        packetManager.getUnacknowledgedPackets().put(packet, attempts + 1);
+                        mcSocket.send(packet.makeDatagramPacket());
+                    }
                 }
             } catch (InterruptedException | IOException ex) {
                 ex.printStackTrace();

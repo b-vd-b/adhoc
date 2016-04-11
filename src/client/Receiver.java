@@ -60,7 +60,7 @@ class Receiver implements Runnable {
                 }
 
                 // Parse packet if it has arrived at final destination, retransmit packet if not.
-                if (packet.getDestinationAddress().equals(Client.LOCAL_ADDRESS) || packet.getPayload() instanceof GroupTextMessage) {
+                if (packet.getDestinationAddress().equals(Client.LOCAL_ADDRESS)) {
                     parsePacket(packet);
                 } else {
                     retransmitPacket(packet);
@@ -82,7 +82,7 @@ class Receiver implements Runnable {
         } else if (message instanceof GroupTextMessage) {
             msg = ((GroupTextMessage) message).getMessage();
             client.getClientGUI().newGroupMessage(nickname, msg);
-            retransmitPacket(packet);
+            acknowledgePacket(packet);
         } else if (message instanceof PrivateTextMessage) {
             if (((PrivateTextMessage) message).isEncrypted()) {
                 try {

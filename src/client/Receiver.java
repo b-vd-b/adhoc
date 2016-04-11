@@ -75,17 +75,15 @@ class Receiver implements Runnable {
     private void parsePacket(Packet packet) throws IOException {
         // TODO: Add payload parsing.
         Message message = packet.getPayload();
-
+        String nickname = client.getDestinations().get(packet.getSourceAddress());
+        String msg;
         if (message instanceof AckMessage) {
             packetManager.parseAcknowledgement(packet);
         } else if (message instanceof GroupTextMessage) {
-            String nickname = client.getDestinations().get(packet.getSourceAddress());
-            String msg = ((GroupTextMessage) message).getMessage();
+            msg = ((GroupTextMessage) message).getMessage();
             client.getClientGUI().newGroupMessage(nickname, msg);
             retransmitPacket(packet);
         } else if (message instanceof PrivateTextMessage) {
-            String nickname = client.getDestinations().get(packet.getSourceAddress());
-            String msg;
             if (((PrivateTextMessage) message).isEncrypted()) {
                 try {
                     msg = client.getEncryption().decryptMessage(((PrivateTextMessage) message).getMessage());
@@ -98,6 +96,10 @@ class Receiver implements Runnable {
             }
             client.getClientGUI().newPrivateMessage(nickname, msg);
             acknowledgePacket(packet);
+        } else if (message instanceof GroupFileMessage){
+
+        } else if (message instanceof PrivateFileMessage){
+
         }
     }
 

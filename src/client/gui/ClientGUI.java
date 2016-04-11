@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.net.InetAddress;
 import java.util.HashMap;
 
@@ -99,6 +100,8 @@ public class ClientGUI extends JPanel {
         return clients;
     }
     public void newGroupMessage(String nickname, String message){
+        //todo: need to check if this selection works
+        chatPane.setSelectedComponent(groupChatTab);
         groupChatTab.addMessage(nickname, message);
     }
 
@@ -111,6 +114,22 @@ public class ClientGUI extends JPanel {
             chatPane.setSelectedComponent(privateChatGUI);
         }
         privateChatTabs.get(nickname).addMessage(nickname, message);
+    }
+
+    public void newGroupFileMessage(String nickname, File file){
+        //todo: need to check if this selection works
+        chatPane.setSelectedComponent(groupChatTab);
+        groupChatTab.addMessage(nickname, "has uploaded "+file.getName());
+    }
+
+    public void newPrivateFileMessage(String nickname, File file){
+        if(!privateChatTabs.containsKey(nickname)){
+            PrivateChatGUI privateChatGUI = new PrivateChatGUI(nickname, this);
+            privateChatTabs.put(nickname, privateChatGUI);
+
+            chatPane.addTab(nickname, privateChatGUI);
+            chatPane.setSelectedComponent(privateChatGUI);
+        }
     }
 
     public void addClient(String nickname, InetAddress address){

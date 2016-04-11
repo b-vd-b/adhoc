@@ -4,6 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -17,17 +18,17 @@ import static java.awt.GridBagConstraints.NONE;
  */
 public class GroupChatGUI extends JPanel {
 
-    private GroupChatListener listener;
-    private String id;
+    private String nickname;
     private ClientGUI clientGUI;
 
     private JTextArea textArea;
     private JButton sendButton;
     private JButton fileButton;
     private JTextField inputField;
+    private JFileChooser fileChooser;
 
     public GroupChatGUI(String nickname, ClientGUI clientGUI){
-        id = nickname;
+        this.nickname = nickname;
         this.clientGUI = clientGUI;
         setLayout(new BorderLayout());
 
@@ -46,6 +47,7 @@ public class GroupChatGUI extends JPanel {
         sendButton = new JButton("SEND MESSAGE");
         sendButton.setSize(50,10);
         sendButton.addActionListener(new SendMessageActionListener());
+        fileChooser = new JFileChooser();
         fileButton = new JButton("SEND FILE");
         fileButton.setSize(50,10);
         fileButton.addActionListener(new SendFileActionListener());
@@ -69,12 +71,12 @@ public class GroupChatGUI extends JPanel {
 
     }
 
-    public void addMessage(String id, String message){
+    public void addMessage(String nickname, String message){
 
         Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
         Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
-        textArea.append("["+currentTimestamp+"] "+id+": "+message+"\n");
+        textArea.append("["+currentTimestamp+"] "+nickname+": "+message+"\n");
 
     }
 
@@ -90,7 +92,7 @@ public class GroupChatGUI extends JPanel {
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
-                addMessage(id, msg);
+                addMessage(nickname, msg);
             }
         }
     }
@@ -98,7 +100,14 @@ public class GroupChatGUI extends JPanel {
     private class SendFileActionListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
-
+            int selection = fileChooser.showOpenDialog(null);
+            //do the following when a file has been selected
+            if(selection == JFileChooser.APPROVE_OPTION){
+                File file = fileChooser.getSelectedFile();
+                //needs attention (what is neccesary to send a file?)
+                clientGUI.getClient().sendGroupFileMessage(file, file.getName());
+                addMessage(nickname, file.getName()+" has been sent!");
+            }
         }
     }
 }

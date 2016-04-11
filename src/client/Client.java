@@ -8,6 +8,7 @@ import util.Encryption;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -24,7 +25,7 @@ public class Client {
 
     public static final String MULTICAST_ADDRESS = "228.1.1.1";
     public static final int PORT = 6789;
-    private static final boolean DEBUG_MODE = true;
+    private static final boolean DEBUG_MODE = false;
 
     static InetAddress LOCAL_ADDRESS;
     private static InetAddress GROUP_CHAT_ADDRESS;
@@ -109,6 +110,14 @@ public class Client {
         Packet packet = new Packet(LOCAL_ADDRESS, destination, packetManager.getSequenceNumber(destination), 3, message1);
         packetManager.addSentPacket(packet);
         sender.sendDatagramPacket(packet.makeDatagramPacket());
+    }
+    //todo: implement how to send a file to the group
+    public void sendGroupFileMessage(File file, String fileName){
+
+    }
+    //todo: implement how to send a file privately
+    public void sendPrivateFileMessage(String nickname, File file, String fileName){
+
     }
 
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {

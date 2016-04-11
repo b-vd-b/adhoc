@@ -18,16 +18,17 @@ import static java.awt.GridBagConstraints.NONE;
 public class GroupChatGUI extends JPanel {
 
     private GroupChatListener listener;
-    private String id;
+    private String nickname;
     private ClientGUI clientGUI;
 
+    private JFileChooser fileChooser;
     private JTextArea textArea;
     private JButton sendButton;
     private JButton fileButton;
     private JTextField inputField;
 
-    public GroupChatGUI(String nickname, ClientGUI clientGUI){
-        id = nickname;
+    public GroupChatGUI(ClientGUI clientGUI){
+        this.nickname = clientGUI.getNickname();
         this.clientGUI = clientGUI;
         setLayout(new BorderLayout());
 
@@ -69,7 +70,7 @@ public class GroupChatGUI extends JPanel {
 
     }
 
-    public void addMessage(String id, String message){
+    public void addMessage(String id, String message, Color color){
 
         Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
@@ -90,7 +91,7 @@ public class GroupChatGUI extends JPanel {
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
-                addMessage(id, msg);
+                addMessage(nickname, msg, Color.BLACK);
             }
         }
     }

@@ -6,6 +6,7 @@ import client.routing.NodeUpdater;
 import datatype.*;
 import util.Encryption;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -22,6 +23,7 @@ public class Client {
     public static final String MULTICAST_ADDRESS = "228.1.1.1";
     public static final int PORT = 6789;
     private static final boolean DEBUG_MODE = true;
+    private Color[] colors = {Color.RED, Color.GREEN, Color.YELLOW, Color.BLUE, Color.CYAN};
 
     static InetAddress LOCAL_ADDRESS;
     private static InetAddress GROUP_CHAT_ADDRESS;
@@ -36,9 +38,11 @@ public class Client {
     private HashMap<InetAddress, String> lastRoundNeighbours = new HashMap<>();
     private Encryption encryption;
 
+    private String nickname;
     private MulticastSocket mcSocket;
 
     public Client(String nickname) {
+        this.nickname = nickname;
         encryption = new Encryption();
 
         InetAddress group;
@@ -65,7 +69,7 @@ public class Client {
         }
 
         new Thread(new NodeUpdater(this)).start();
-        clientGUI = new ClientGUI(nickname, this);
+        clientGUI = new ClientGUI(this);
     }
 
     public static void main(String[] args) throws IOException {
@@ -88,6 +92,9 @@ public class Client {
         return lifeLongDests;
     }
 
+    public String getNickname(){
+        return nickname;
+    }
     HashMap<InetAddress, String> getDestinations() {
         return destinations;
     }
@@ -128,7 +135,8 @@ public class Client {
             System.out.println(message.getNickname());
             System.out.println(address);
             System.out.println(clientGUI);
-            clientGUI.addClient(message.getNickname(), address);
+            //Integer.toHexString(address.hashCode()&0x00ffffff);
+            clientGUI.addClient(message.getNickname(), address, generateColor());
         }
 
         //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
@@ -222,6 +230,17 @@ public class Client {
         lock.unlock();*/
     }
 
+    public Color generateColor(){
+        Color result = null;
+        boolean unique = false;
+        while(!unique){
+            result = colors[4*(int)Math.random()];
+            if(!clientGUI.getAddressColorHashMap().containsValue(result)){
+                unique=true;
+            }
+        }
+        return result;
+    }
     ClientGUI getClientGUI() {
         return clientGUI;
     }

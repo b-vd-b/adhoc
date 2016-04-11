@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
@@ -17,9 +18,10 @@ import static java.awt.GridBagConstraints.NONE;
  */
 public class PrivateChatGUI extends JPanel {
 
-    private String nickname;
+    private InetAddress address;
     private ClientGUI clientGUI;
 
+    private JFileChooser fileChooser;
     private JTextArea textArea;
     private JButton sendButton;
     private JButton fileButton;
@@ -32,7 +34,7 @@ public class PrivateChatGUI extends JPanel {
             inputField.setText("");
             if(msg.length() > 0){
                 try {
-                    clientGUI.getClient().sendPrivateTextMessage(msg, nickname);
+                    clientGUI.getClient().sendPrivateTextMessage(msg, address);
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -48,8 +50,8 @@ public class PrivateChatGUI extends JPanel {
         }
     }
 
-    public PrivateChatGUI(String nickname, ClientGUI clientGUI){
-        this.nickname = nickname;
+    public PrivateChatGUI(InetAddress address, ClientGUI clientGUI){
+        this.address = address;
         this.clientGUI = clientGUI;
         setLayout(new BorderLayout());
 

@@ -2,9 +2,12 @@ package client;
 
 import datatype.*;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.MulticastSocket;
+import java.security.InvalidKeyException;
 
 class Receiver implements Runnable {
 
@@ -76,15 +79,20 @@ class Receiver implements Runnable {
         if (message instanceof AckMessage) {
             packetManager.parseAcknowledgement(packet);
         } else if (message instanceof GroupTextMessage) {
-            String nickname = client.getLifeLongDestinations().get(packet.getSourceAddress());
+            String nickname = client.getDestinations().get(packet.getSourceAddress());
             String msg = ((GroupTextMessage) message).getMessage();
             client.getClientGUI().newGroupMessage(nickname, msg);
             retransmitPacket(packet);
         } else if (message instanceof PrivateTextMessage) {
-            String nickname = client.getLifeLongDestinations().get(packet.getSourceAddress());
+            String nickname = client.getDestinations().get(packet.getSourceAddress());
             String msg;
             if (((PrivateTextMessage) message).isEncrypted()) {
-                msg = client.getEncryption().decryptMessage(((PrivateTextMessage) message).getMessage());
+                try {
+                    msg = client.getEncryption().decryptMessage(((PrivateTextMessage) message).getMessage());
+                } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+                    client.getClientGUI().newPrivateMessage("SYSTEM", "Received a message from: " + client.getDestinations().get(packet.getSourceAddress()) + " But unfortunately this message was malformed and can not be recovered");
+                    return;
+                }
             } else {
                 msg = ((PrivateTextMessage) message).getMessage();
             }

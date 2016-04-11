@@ -33,28 +33,16 @@ public class Encryption {
         return publicKey;
     }
 
-    public String encryptMessage(String message, PublicKey key) {
+    public String encryptMessage(String message, PublicKey key) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
         //Encrypt using the key given
-        try {
-            cipher.init(Cipher.ENCRYPT_MODE, key);
-            byte[] encryptedMessage = cipher.doFinal(message.getBytes());
-            return new String(Base64.getEncoder().encode(encryptedMessage));
-        } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Not supposed to get here");
-        return null;
+        cipher.init(Cipher.ENCRYPT_MODE, key);
+        byte[] encryptedMessage = cipher.doFinal(message.getBytes());
+        return new String(Base64.getEncoder().encode(encryptedMessage));
     }
 
-    public String decryptMessage(String message) {
-        try {
-            cipher.init(Cipher.DECRYPT_MODE, privateKey);
-            byte[] decryptedMessage = cipher.doFinal(Base64.getDecoder().decode(message.getBytes()));
-            return new String(decryptedMessage);
-        } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Not supposed to get here");
-        return null;
+    public String decryptMessage(String message) throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] decryptedMessage = cipher.doFinal(Base64.getDecoder().decode(message.getBytes()));
+        return new String(decryptedMessage);
     }
 }

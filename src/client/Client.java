@@ -6,10 +6,13 @@ import client.routing.NodeUpdater;
 import datatype.*;
 import util.Encryption;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,7 +31,6 @@ public class Client {
     private static PacketManager packetManager;
     private static Sender sender;
     private ClientGUI clientGUI;
-    private HashMap<InetAddress, String> lifeLongDests = new HashMap<>();
     private HashMap<InetAddress, PublicKey> encryptionKeys = new HashMap<>();
     private HashMap<InetAddress, String> destinations = new HashMap<>();
     private HashMap<InetAddress, InetAddress> nextHop = new HashMap<>();
@@ -84,10 +86,6 @@ public class Client {
         new LoginGUI();
     }
 
-    synchronized HashMap<InetAddress, String> getLifeLongDestinations() {
-        return lifeLongDests;
-    }
-
     HashMap<InetAddress, String> getDestinations() {
         return destinations;
     }
@@ -99,30 +97,31 @@ public class Client {
     }
 
     public void sendPrivateTextMessage(String message, String nickname) throws IOException {
-        String encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(clientGUI.getClients().get(nickname)));
-        if (encryptedMessage == null) {
-            clientGUI.newPrivateMessage(nickname, "Error! something went wrong, try again");
-        } else {
-            Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
-            InetAddress destination = clientGUI.getClients().get(nickname);
-            Packet packet = new Packet(LOCAL_ADDRESS, destination, packetManager.getSequenceNumber(destination), 3, message1);
-            packetManager.addSentPacket(packet);
-            sender.sendDatagramPacket(packet.makeDatagramPacket());
+        String encryptedMessage;
+        try {
+            encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(clientGUI.getClients().get(nickname)));
+        } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+            clientGUI.newPrivateMessage("SYSTEM", "Sorry something went wrong, please try again later");
+            return;
         }
+        Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
+        InetAddress destination = clientGUI.getClients().get(nickname);
+        Packet packet = new Packet(LOCAL_ADDRESS, destination, packetManager.getSequenceNumber(destination), 3, message1);
+        packetManager.addSentPacket(packet);
+        sender.sendDatagramPacket(packet.makeDatagramPacket());
     }
 
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
+        //Check to see if the broadcastMessage is valid
+        if (message.equals(null) || address.equals(null)) {
+            return;
+        }
         //Add the neighbour to the lastRoundNeighbours HashMap
         if (!lastRoundNeighbours.containsKey(address)) {
             lastRoundNeighbours.put(address, message.getNickname());
         } else return;
 
-        //Add the neighbour to the lifeLongDests if it isn't already
-        if (!lifeLongDests.containsKey(address)) {
-            lifeLongDests.put(address, message.getNickname());
-        }
-
-        //Add the neighbour to the destination, nextHop and publicKeys HashMap if it isn't already
+        //Add the neighbour to the destination and nextHop HashMap if it isn't already
         if (!destinations.containsKey(address)) {
             destinations.put(address, message.getNickname());
             nextHop.put(address, address);
@@ -136,46 +135,16 @@ public class Client {
         });
 
         //Add public keys of the neighbours of the received neighbour in own HashMap
-        message.getPublicKeys().keySet().stream().filter(e -> !encryptionKeys.containsKey(e)).forEach(e -> {
-            encryptionKeys.put(e, message.getPublicKeys().get(e));
-            System.out.println("inetaddresses: " + encryptionKeys.keySet().toString());
-            System.out.println("keys: " + encryptionKeys.values().toString());
-        });
-        /*
-        lock.lock();
-        this.lastRoundNeighbours.put(address, message.getNickname());
-        for (InetAddress e : message.getDestinations().keySet()) {
-            if (!destinations.containsKey(e)) {
-                if (!e.equals(InetAddress.getLocalHost())) {
-                    destinations.put(address, message.getNickname());
-                    lifeLongDests.put(address, message.getNickname());
-                    nextHop.put(e, address);
-                }
-            }
-        }
-
-        List<InetAddress> toRemove = new ArrayList<>();
-        nextHop.keySet().stream().filter(e -> !message.getDestinations().containsKey(e)).filter(e -> nextHop.get(e).equals(address)).forEach(toRemove::add);
-
-        for (InetAddress e : toRemove) {
-            destinations.remove(e);
-            nextHop.remove(e);
-        }
-        lock.unlock();*/
+        message.getPublicKeys().keySet().stream().filter(e -> !encryptionKeys.containsKey(e)).forEach(e -> encryptionKeys.put(e, message.getPublicKeys().get(e)));
     }
 
     public synchronized void updateNeighbours() {
+        //Put all the dropped neighbours in a list
         List<InetAddress> droppedNeighbours = new ArrayList<>();
-        //Remove dropped neighbours from last transmission if they didn't broadcast
-        neighbours.keySet().stream().filter(e -> !lastRoundNeighbours.containsKey(e)).forEach(e -> {
-            destinations.remove(e);
-            nextHop.remove(e);
-            encryptionKeys.remove(e);
-            droppedNeighbours.add(e);
-        });
+        neighbours.keySet().stream().filter(e -> !lastRoundNeighbours.containsKey(e)).forEach(droppedNeighbours::add);
 
-        List<InetAddress> toRemoveDestinations = new ArrayList<>();
         //Remove all the destinations that were associated with the dropped neighbours
+        List<InetAddress> toRemoveDestinations = new ArrayList<>();
         for (InetAddress e : nextHop.keySet()) {
             toRemoveDestinations.addAll(droppedNeighbours.stream().filter(i -> nextHop.get(e).equals(i)).map(i -> e).collect(Collectors.toList()));
         }
@@ -191,44 +160,17 @@ public class Client {
         neighbours.clear();
         neighbours.putAll(lastRoundNeighbours);
         lastRoundNeighbours.clear();
-
-        /*lock.lock();
-        neighbours.clear();
-        neighbours.putAll(lastRoundNeighbours);
-        lastRoundNeighbours.clear();
-        neighbours.keySet().stream().filter(e -> !destinations.containsKey(e)).forEach(e -> {
-            destinations.put(e, neighbours.get(e));
-            lifeLongDests.put(e, neighbours.get(e));
-            if (!clientGUI.getClients().containsKey(lifeLongDests.get(e))) {
-                clientGUI.addClient(lifeLongDests.get(e), e);
-            }
-            nextHop.put(e, e);
-        });
-
-        List<InetAddress> toRemove = new ArrayList<>();
-        destinations.keySet().stream().filter(e -> !neighbours.containsKey(e)).forEach(e -> {
-            if (nextHop.get(e).equals(e)) {
-                toRemove.add(e);
-            }
-        });
-
-        for (InetAddress e : toRemove) {
-            destinations.remove(e);
-            clientGUI.removeClient(lifeLongDests.get(e));
-            nextHop.remove(e);
-        }
-        lock.unlock();*/
     }
 
     ClientGUI getClientGUI() {
         return clientGUI;
     }
 
-    public HashMap<InetAddress, PublicKey> getEncryptionKeys() {
+    synchronized HashMap<InetAddress, PublicKey> getEncryptionKeys() {
         return encryptionKeys;
     }
 
-    public Encryption getEncryption() {
+    Encryption getEncryption() {
         return encryption;
     }
 }

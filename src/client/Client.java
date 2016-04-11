@@ -98,14 +98,13 @@ public class Client {
         sender.sendDatagramPacket(packet.makeDatagramPacket());
     }
 
-    public void sendPrivateTextMessage(String message, String nickname) throws IOException {
-        String encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(clientGUI.getClients().get(nickname)));
+    public void sendPrivateTextMessage(String message, InetAddress address) throws IOException {
+        String encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(address));
         if (encryptedMessage == null) {
-            clientGUI.newPrivateMessage(nickname, "Error! something went wrong, try again");
+            clientGUI.newPrivateMessage(address, "Error! something went wrong, try again");
         } else {
             Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
-            InetAddress destination = clientGUI.getClients().get(nickname);
-            Packet packet = new Packet(LOCAL_ADDRESS, destination, packetManager.getSequenceNumber(destination), 3, message1);
+            Packet packet = new Packet(LOCAL_ADDRESS, address, packetManager.getSequenceNumber(address), 3, message1);
             packetManager.addSentPacket(packet);
             sender.sendDatagramPacket(packet.makeDatagramPacket());
         }
@@ -126,6 +125,9 @@ public class Client {
         if (!destinations.containsKey(address)) {
             destinations.put(address, message.getNickname());
             nextHop.put(address, address);
+            System.out.println(message.getNickname());
+            System.out.println(address);
+            System.out.println(clientGUI);
             clientGUI.addClient(message.getNickname(), address);
         }
 
@@ -181,7 +183,7 @@ public class Client {
         }
 
         for (InetAddress e : toRemoveDestinations) {
-            clientGUI.removeClient(destinations.get(e));
+            clientGUI.removeClient(e);
             destinations.remove(e);
             nextHop.remove(e);
             encryptionKeys.remove(e);

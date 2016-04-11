@@ -28,10 +28,11 @@ class PacketManager {
         receivedPackets.get(packet.getSourceAddress()).add(packet);
     }
 
-    void addSentPacket(Packet packet) {
+    void addSentPacket(Packet packet) throws IOException {
         sentPackets.putIfAbsent(packet.getDestinationAddress(), new ArrayList<>());
         sentPackets.get(packet.getDestinationAddress()).add(packet);
         addUnacknowledgedPacket(packet);
+        sequenceNumbers.put(packet.getDestinationAddress(), packet.getSequenceNumber() + packet.getLength());
     }
 
     private void addUnacknowledgedPacket(Packet packet) {
@@ -55,7 +56,6 @@ class PacketManager {
         }
 
         if (acknowledgedPacket != null) {
-            sequenceNumbers.put(ack.getSourceAddress(), ((AckMessage) ack.getPayload()).getAckNumber());
             unacknowledgedPackets.remove(acknowledgedPacket);
         }
     }

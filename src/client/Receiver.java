@@ -78,7 +78,7 @@ class Receiver implements Runnable {
         } else if (message instanceof GroupTextMessage) {
             String nickname = client.getLifeLongDestinations().get(packet.getSourceAddress());
             String msg = ((GroupTextMessage) message).getMessage();
-            client.getClientGUI().newGroupMessage(packet.getSourceAddress(), msg);
+            client.getClientGUI().newGroupMessage(nickname, msg);
             retransmitPacket(packet);
         } else if (message instanceof PrivateTextMessage) {
             String nickname = client.getLifeLongDestinations().get(packet.getSourceAddress());
@@ -88,7 +88,7 @@ class Receiver implements Runnable {
             } else {
                 msg = ((PrivateTextMessage) message).getMessage();
             }
-            client.getClientGUI().newPrivateMessage(packet.getSourceAddress(), msg);
+            client.getClientGUI().newPrivateMessage(nickname, msg);
             acknowledgePacket(packet);
         }
     }

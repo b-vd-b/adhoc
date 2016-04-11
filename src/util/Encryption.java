@@ -42,7 +42,8 @@ public class Encryption {
         } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
             e.printStackTrace();
         }
-        return "";
+        System.out.println("Not supposed to get here");
+        return null;
     }
 
     public String decryptMessage(String message) {
@@ -53,6 +54,7 @@ public class Encryption {
         } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
             e.printStackTrace();
         }
-        return "";
+        System.out.println("Not supposed to get here");
+        return null;
     }
 }

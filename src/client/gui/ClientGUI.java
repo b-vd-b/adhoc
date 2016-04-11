@@ -14,9 +14,7 @@ import java.util.HashMap;
  */
 public class ClientGUI extends JPanel {
 
-    private HashMap<InetAddress,String> clients;
-    private HashMap<Color, InetAddress> colorMap;
-    private HashMap<InetAddress, Color> addressColorHashMap;
+    private HashMap<String,InetAddress> clients;
     private DefaultListModel<String> clientListModel;
     private JList<String> clientList;
     private JFrame mainChat;
@@ -40,9 +38,9 @@ public class ClientGUI extends JPanel {
         public void mouseClicked(MouseEvent e) {
             if(e.getClickCount()==2){
                 String client = clientList.getSelectedValue();
-                Color color = clientList.getSelectionForeground();
+
                 if(!privateChatTabs.containsKey(client)){
-                    PrivateChatGUI privateChatGUI = new PrivateChatGUI(colorMap.get(color), clientGUI);
+                    PrivateChatGUI privateChatGUI = new PrivateChatGUI(client, clientGUI);
                     privateChatTabs.put(client, privateChatGUI);
 
                     chatPane.addTab(client, privateChatGUI);
@@ -55,19 +53,17 @@ public class ClientGUI extends JPanel {
         }
     }
 
-    public ClientGUI(Client client){
+    public ClientGUI(String nickname, Client client){
         setLayout(new BorderLayout());
-        this.nickname = client.getNickname();
+        this.nickname = nickname;
         this.client = client;
         this.clients = new HashMap<>();
-        this.colorMap = new HashMap<>();
-        this.addressColorHashMap = new HashMap<>();
         this.privateChatTabs = new HashMap<>();
         mainChat = new JFrame("Awesome ad hoc Chat program");
         mainChat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainChat.setMinimumSize(new Dimension(800, 600));
         mainChat.setSize(800,600);
-        groupChatTab = new GroupChatGUI(this);
+        groupChatTab = new GroupChatGUI(nickname, this);
 
         chatPane = new JTabbedPane();
         chatPane.addTab("GroupChat", groupChatTab);
@@ -95,43 +91,36 @@ public class ClientGUI extends JPanel {
         mainChat.pack();
 
     }
-
-    public HashMap<InetAddress, Color> getAddressColorHashMap(){
-        return addressColorHashMap;
-    }
     public String getNickname() { return nickname; }
     public Client getClient(){
         return client;
     }
-    public HashMap<InetAddress, String> getClients(){
+    public HashMap<String, InetAddress> getClients(){
         return clients;
     }
-    public void newGroupMessage(InetAddress address, String message){
-        groupChatTab.addMessage(clients.get(address), message, addressColorHashMap.get(address));
+    public void newGroupMessage(String nickname, String message){
+        groupChatTab.addMessage(nickname, message);
     }
 
-    public void newPrivateMessage(InetAddress address, String message){
-        if(!privateChatTabs.containsKey(clients.get(address))){
-            PrivateChatGUI privateChatGUI = new PrivateChatGUI(address, this);
-            privateChatTabs.put(clients.get(address), privateChatGUI);
+    public void newPrivateMessage(String nickname, String message){
+        if(!privateChatTabs.containsKey(nickname)){
+            PrivateChatGUI privateChatGUI = new PrivateChatGUI(nickname, this);
+            privateChatTabs.put(nickname, privateChatGUI);
 
-            chatPane.addTab(clients.get(address), privateChatGUI);
+            chatPane.addTab(nickname, privateChatGUI);
             chatPane.setSelectedComponent(privateChatGUI);
         }
-        privateChatTabs.get(clients.get(address)).addMessage(clients.get(address), message);
+        privateChatTabs.get(nickname).addMessage(nickname, message);
     }
 
-    public void addClient(String nickname, InetAddress address, Color color){
-        clients.put(address, nickname);
+    public void addClient(String nickname, InetAddress address){
+        clients.put(nickname, address);
         clientListModel.addElement(nickname);
-        colorMap.put(color, address);
-        addressColorHashMap.put(address, color);
+
     }
 
-    public void removeClient(InetAddress address){
-        clients.remove(address);
-        clientListModel.removeElement(clients.get(address));
-        addressColorHashMap.remove(address);
-        colorMap.values().remove(address);
+    public void removeClient(String nickname){
+        clients.remove(nickname);
+        clientListModel.removeElement(nickname);
     }
 }

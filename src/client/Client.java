@@ -6,7 +6,6 @@ import client.routing.NodeUpdater;
 import datatype.*;
 import util.Encryption;
 
-import java.awt.*;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
@@ -23,7 +22,6 @@ public class Client {
     public static final String MULTICAST_ADDRESS = "228.1.1.1";
     public static final int PORT = 6789;
     private static final boolean DEBUG_MODE = true;
-    private Color[] colors = {Color.RED, Color.GREEN, Color.YELLOW, Color.BLUE, Color.CYAN};
 
     static InetAddress LOCAL_ADDRESS;
     private static InetAddress GROUP_CHAT_ADDRESS;
@@ -38,11 +36,9 @@ public class Client {
     private HashMap<InetAddress, String> lastRoundNeighbours = new HashMap<>();
     private Encryption encryption;
 
-    private String nickname;
     private MulticastSocket mcSocket;
 
     public Client(String nickname) {
-        this.nickname = nickname;
         encryption = new Encryption();
 
         InetAddress group;
@@ -69,7 +65,7 @@ public class Client {
         }
 
         new Thread(new NodeUpdater(this)).start();
-        clientGUI = new ClientGUI(this);
+        clientGUI = new ClientGUI(nickname, this);
     }
 
     public static void main(String[] args) throws IOException {
@@ -92,9 +88,6 @@ public class Client {
         return lifeLongDests;
     }
 
-    public String getNickname(){
-        return nickname;
-    }
     HashMap<InetAddress, String> getDestinations() {
         return destinations;
     }
@@ -105,13 +98,14 @@ public class Client {
         sender.sendDatagramPacket(packet.makeDatagramPacket());
     }
 
-    public void sendPrivateTextMessage(String message, InetAddress address) throws IOException {
-        String encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(address));
-        if (encryptedMessage == "") {
-            clientGUI.newPrivateMessage(address, "Error! something went wrong, please try again");
+    public void sendPrivateTextMessage(String message, String nickname) throws IOException {
+        String encryptedMessage = encryption.encryptMessage(message, encryptionKeys.get(clientGUI.getClients().get(nickname)));
+        if (encryptedMessage == null) {
+            clientGUI.newPrivateMessage(nickname, "Error! something went wrong, try again");
         } else {
             Message message1 = new PrivateTextMessage(true, encryptedMessage, "");
-            Packet packet = new Packet(LOCAL_ADDRESS, address, packetManager.getSequenceNumber(address), 3, message1);
+            InetAddress destination = clientGUI.getClients().get(nickname);
+            Packet packet = new Packet(LOCAL_ADDRESS, destination, packetManager.getSequenceNumber(destination), 3, message1);
             packetManager.addSentPacket(packet);
             sender.sendDatagramPacket(packet.makeDatagramPacket());
         }
@@ -132,11 +126,7 @@ public class Client {
         if (!destinations.containsKey(address)) {
             destinations.put(address, message.getNickname());
             nextHop.put(address, address);
-            System.out.println(message.getNickname());
-            System.out.println(address);
-            System.out.println(clientGUI);
-            //Integer.toHexString(address.hashCode()&0x00ffffff);
-            clientGUI.addClient(message.getNickname(), address, generateColor());
+            clientGUI.addClient(message.getNickname(), address);
         }
 
         //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
@@ -146,7 +136,32 @@ public class Client {
         });
 
         //Add public keys of the neighbours of the received neighbour in own HashMap
-        message.getPublicKeys().keySet().stream().filter(e -> !encryptionKeys.containsKey(e)).forEach(e -> encryptionKeys.put(e, message.getPublicKeys().get(e)));
+        message.getPublicKeys().keySet().stream().filter(e -> !encryptionKeys.containsKey(e)).forEach(e -> {
+            encryptionKeys.put(e, message.getPublicKeys().get(e));
+            System.out.println("inetaddresses: " + encryptionKeys.keySet().toString());
+            System.out.println("keys: " + encryptionKeys.values().toString());
+        });
+        /*
+        lock.lock();
+        this.lastRoundNeighbours.put(address, message.getNickname());
+        for (InetAddress e : message.getDestinations().keySet()) {
+            if (!destinations.containsKey(e)) {
+                if (!e.equals(InetAddress.getLocalHost())) {
+                    destinations.put(address, message.getNickname());
+                    lifeLongDests.put(address, message.getNickname());
+                    nextHop.put(e, address);
+                }
+            }
+        }
+
+        List<InetAddress> toRemove = new ArrayList<>();
+        nextHop.keySet().stream().filter(e -> !message.getDestinations().containsKey(e)).filter(e -> nextHop.get(e).equals(address)).forEach(toRemove::add);
+
+        for (InetAddress e : toRemove) {
+            destinations.remove(e);
+            nextHop.remove(e);
+        }
+        lock.unlock();*/
     }
 
     public synchronized void updateNeighbours() {
@@ -166,7 +181,7 @@ public class Client {
         }
 
         for (InetAddress e : toRemoveDestinations) {
-            clientGUI.removeClient(e);
+            clientGUI.removeClient(destinations.get(e));
             destinations.remove(e);
             nextHop.remove(e);
             encryptionKeys.remove(e);
@@ -176,19 +191,35 @@ public class Client {
         neighbours.clear();
         neighbours.putAll(lastRoundNeighbours);
         lastRoundNeighbours.clear();
+
+        /*lock.lock();
+        neighbours.clear();
+        neighbours.putAll(lastRoundNeighbours);
+        lastRoundNeighbours.clear();
+        neighbours.keySet().stream().filter(e -> !destinations.containsKey(e)).forEach(e -> {
+            destinations.put(e, neighbours.get(e));
+            lifeLongDests.put(e, neighbours.get(e));
+            if (!clientGUI.getClients().containsKey(lifeLongDests.get(e))) {
+                clientGUI.addClient(lifeLongDests.get(e), e);
+            }
+            nextHop.put(e, e);
+        });
+
+        List<InetAddress> toRemove = new ArrayList<>();
+        destinations.keySet().stream().filter(e -> !neighbours.containsKey(e)).forEach(e -> {
+            if (nextHop.get(e).equals(e)) {
+                toRemove.add(e);
+            }
+        });
+
+        for (InetAddress e : toRemove) {
+            destinations.remove(e);
+            clientGUI.removeClient(lifeLongDests.get(e));
+            nextHop.remove(e);
+        }
+        lock.unlock();*/
     }
 
-    public Color generateColor(){
-        Color result = null;
-        boolean unique = false;
-        while(!unique){
-            result = colors[4*(int)Math.random()];
-            if(!clientGUI.getAddressColorHashMap().containsValue(result)){
-                unique=true;
-            }
-        }
-        return result;
-    }
     ClientGUI getClientGUI() {
         return clientGUI;
     }

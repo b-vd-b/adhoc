@@ -120,18 +120,20 @@ public class Client {
     }
 
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
+        System.out.println("Destinations list from neighbour" + message.getDestinations().keySet().toString());
         //Add the neighbour to the lastRoundNeighbours HashMap
         if (!lastRoundNeighbours.containsKey(address)) {
             lastRoundNeighbours.put(address, message.getNickname());
         }
 
         //Add the neighbour to the destination and nextHop HashMap if it isn't already
-        if (!destinations.containsKey(address)) {
-            destinations.put(address, message.getNickname());
-            nextHop.put(address, LOCAL_ADDRESS);
+        destinations.put(address, message.getNickname());
+        nextHop.put(address, LOCAL_ADDRESS);
+        if (!clientGUI.getClients().keySet().contains(address)) {
             clientGUI.addClient(message.getNickname(), address);
-            encryptionKeys.put(address, message.getPublicKeys().get(address));
         }
+
+        encryptionKeys.put(address, message.getPublicKeys().get(address));
 
         //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
         for (InetAddress e : message.getDestinations().keySet()) {
@@ -146,6 +148,8 @@ public class Client {
                 }
             }
         }
+
+        System.out.println("nextHop hashmap: " + nextHop.toString());
 
         //Delete the neighbours that aren't reachable anymore through this neighbour if there are any
         List<InetAddress> localDestinations = new ArrayList<>();
@@ -166,6 +170,7 @@ public class Client {
     }
 
     public synchronized void updateNeighbours() {
+        System.out.println("Destinations before update: " + destinations.keySet().toString());
         //Put all the dropped neighbours in a list
         List<InetAddress> droppedNeighbours = new ArrayList<>();
         for (InetAddress e : neighbours.keySet()) {
@@ -173,13 +178,15 @@ public class Client {
                 droppedNeighbours.add(e);
             }
         }
+        System.out.println("droppedNeighbours: " + droppedNeighbours.toString());
         //Remove all the destinations that were associated with the dropped neighbours
         List<InetAddress> toRemoveDestinations = new ArrayList<>();
         for (InetAddress e : destinations.keySet()) {
-            if (droppedNeighbours.contains(nextHop.get(e)) || droppedNeighbours.contains(nextHop.get(LOCAL_ADDRESS))) {
+            if (droppedNeighbours.contains(e) || droppedNeighbours.contains(nextHop.get(e))) {
                 toRemoveDestinations.add(e);
             }
         }
+        System.out.println("toRemoveDestinations: " + toRemoveDestinations.toString());
         for (InetAddress e : toRemoveDestinations) {
             clientGUI.removeClient(destinations.get(e));
             destinations.remove(e);
@@ -191,6 +198,8 @@ public class Client {
         neighbours.clear();
         neighbours.putAll(lastRoundNeighbours);
         lastRoundNeighbours.clear();
+        System.out.println("Destinations after updateNeighbours: " + destinations.keySet().toString());
+        System.out.println("-------------------------------------------------------------------------------");
     }
 
     ClientGUI getClientGUI() {

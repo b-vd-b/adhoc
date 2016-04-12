@@ -168,14 +168,18 @@ public class Client {
     public synchronized void updateNeighbours() {
         //Put all the dropped neighbours in a list
         List<InetAddress> droppedNeighbours = new ArrayList<>();
-        neighbours.keySet().stream().filter(e -> !lastRoundNeighbours.containsKey(e)).forEach(droppedNeighbours::add);
-
+        for (InetAddress e : neighbours.keySet()) {
+            if (!lastRoundNeighbours.containsKey(e)) {
+                droppedNeighbours.add(e);
+            }
+        }
         //Remove all the destinations that were associated with the dropped neighbours
         List<InetAddress> toRemoveDestinations = new ArrayList<>();
-        for (InetAddress e : nextHop.keySet()) {
-            toRemoveDestinations.addAll(droppedNeighbours.stream().filter(i -> nextHop.get(e).equals(i)).map(i -> e).collect(Collectors.toList()));
+        for (InetAddress e : destinations.keySet()) {
+            if (droppedNeighbours.contains(nextHop.get(e)) || droppedNeighbours.contains(nextHop.get(LOCAL_ADDRESS))) {
+                toRemoveDestinations.add(e);
+            }
         }
-
         for (InetAddress e : toRemoveDestinations) {
             clientGUI.removeClient(destinations.get(e));
             destinations.remove(e);

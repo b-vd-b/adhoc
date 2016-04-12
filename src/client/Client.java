@@ -92,6 +92,7 @@ public class Client {
     }
 
     public void sendGroupTextMessage(String contents) throws IOException {
+        System.out.println(clientGUI.getClients().values().toString());
         Message message = new GroupTextMessage(contents, "");
         for (InetAddress destination : clientGUI.getClients().values()) {
             sender.sendMessage(destination, message);
@@ -137,10 +138,12 @@ public class Client {
         for (InetAddress e : message.getDestinations().keySet()) {
             if (!destinations.containsKey(e)) {
                 if (!e.equals(LOCAL_ADDRESS)) {
-                    destinations.put(e, message.getDestinations().get(e));
-                    nextHop.put(e, address);
-                    clientGUI.addClient(message.getDestinations().get(e), e);
-                    encryptionKeys.put(e, message.getPublicKeys().get(e));
+                    if (!message.getNextHop().get(e).equals(LOCAL_ADDRESS)) {
+                        destinations.put(e, message.getDestinations().get(e));
+                        nextHop.put(e, address);
+                        clientGUI.addClient(message.getDestinations().get(e), e);
+                        encryptionKeys.put(e, message.getPublicKeys().get(e));
+                    }
                 }
             }
         }
@@ -180,5 +183,9 @@ public class Client {
 
     Encryption getEncryption() {
         return encryption;
+    }
+
+    public HashMap<InetAddress, InetAddress> getNextHop() {
+        return nextHop;
     }
 }

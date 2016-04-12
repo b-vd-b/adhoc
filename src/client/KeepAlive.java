@@ -64,7 +64,7 @@ class KeepAlive implements Runnable {
     }
 
     private DatagramPacket makeBroadcastPacket() throws IOException {
-        Packet packet = new Packet(Client.LOCAL_ADDRESS, Client.LOCAL_ADDRESS, -1 , 3, new BroadcastMessage(nickname, client.getDestinations(), client.getEncryptionKeys()));
+        Packet packet = new Packet(Client.LOCAL_ADDRESS, Client.LOCAL_ADDRESS, -1 , 3, new BroadcastMessage(nickname, client.getDestinations(), client.getEncryptionKeys(), client.getNextHop()));
         return packet.makeDatagramPacket();
     }
 }

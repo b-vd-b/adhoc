@@ -9,12 +9,14 @@ public class BroadcastMessage extends Message {
     private String nickname;
     private HashMap<InetAddress,String> destinations;
     private HashMap<InetAddress, PublicKey> publicKey;
+    private HashMap<InetAddress, InetAddress> nextHop;
 
-    public BroadcastMessage(String nickname, HashMap<InetAddress,String> dest, HashMap<InetAddress, PublicKey> publicKey) {
+    public BroadcastMessage(String nickname, HashMap<InetAddress,String> dest, HashMap<InetAddress, PublicKey> publicKey, HashMap<InetAddress, InetAddress> nextHop) {
         destinations = new HashMap<>();
         this.destinations = dest;
         this.nickname = nickname;
         this.publicKey = publicKey;
+        this.nextHop = nextHop;
     }
 
     public String getNickname() {
@@ -26,4 +28,8 @@ public class BroadcastMessage extends Message {
     }
 
     public HashMap<InetAddress,String> getDestinations() { return destinations; }
+
+    public HashMap<InetAddress, InetAddress> getNextHop() {
+        return nextHop;
+    }
 }

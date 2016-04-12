@@ -1,6 +1,10 @@
 package client.gui;
 
 import javax.swing.*;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultStyledDocument;
+import javax.swing.text.Style;
+import javax.swing.text.StyleContext;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -21,11 +25,15 @@ public class GroupChatGUI extends JPanel {
     private String nickname;
     private ClientGUI clientGUI;
 
-    private JTextArea textArea;
+    private JTextPane textArea;
     private JButton sendButton;
     private JButton fileButton;
     private JTextField inputField;
     private JFileChooser fileChooser;
+    private DefaultStyledDocument document = new DefaultStyledDocument();
+    private StyleContext context = new StyleContext();
+    private Style style = context.addStyle("Style", null);
+
 
     public GroupChatGUI(String nickname, ClientGUI clientGUI){
         this.nickname = nickname;
@@ -33,7 +41,7 @@ public class GroupChatGUI extends JPanel {
         setLayout(new BorderLayout());
 
         //create and add the text area which cannot be edited
-        textArea = new JTextArea();
+        textArea = new JTextPane(document);
         textArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(textArea);
         add(scrollPane,BorderLayout.CENTER);
@@ -76,10 +84,17 @@ public class GroupChatGUI extends JPanel {
         Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
         Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
-        textArea.append("["+currentTimestamp+"] "+nickname+": "+message+"\n");
 
+        try {
+            document.insertString(document.getLength(), "["+currentTimestamp+"] "+nickname+": "+message, style);
+            //BufferedImage img = ImageIO.read(new File("PATH"));
+            //ImageIcon pictureImage = new ImageIcon(img);
+            //textArea.insertIcon(pictureImage);
+            document.insertString(document.getLength(), "\n", style);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+        }
     }
-
 
     private class SendMessageActionListener implements ActionListener {
 

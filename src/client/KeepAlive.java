@@ -8,6 +8,8 @@ import java.net.DatagramPacket;
 import java.net.Inet4Address;
 import java.net.MulticastSocket;
 import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.List;
 
 class KeepAlive implements Runnable {
 
@@ -38,16 +40,22 @@ class KeepAlive implements Runnable {
                     Thread.sleep(SLEEP);
                 }
 
+                List<Packet> toRemove = new ArrayList<>();
+
                 // Retransmit unacknowledged packets up to three times.
                 for (Packet packet : packetManager.getUnacknowledgedPackets().keySet()) {
                     int attempts = packetManager.getUnacknowledgedPackets().get(packet);
 
                     if (attempts == MAXIMUM_RETRANSMIT_ATTEMPTS) {
-                        packetManager.getUnacknowledgedPackets().remove(packet);
+                        toRemove.add(packet);
                     } else {
                         packetManager.getUnacknowledgedPackets().put(packet, attempts + 1);
                         mcSocket.send(packet.makeDatagramPacket());
                     }
+                }
+
+                for (Packet packet : toRemove) {
+                    packetManager.getUnacknowledgedPackets().remove(packet);
                 }
             } catch (InterruptedException | IOException ex) {
                 ex.printStackTrace();

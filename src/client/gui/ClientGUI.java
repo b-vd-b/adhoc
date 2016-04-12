@@ -46,7 +46,6 @@ public class ClientGUI extends JPanel {
 
                     chatPane.addTab(client, privateChatGUI);
                     chatPane.setSelectedComponent(privateChatGUI);
-
                 } else{
                     chatPane.setSelectedComponent(privateChatTabs.get(client));
                 }
@@ -101,7 +100,6 @@ public class ClientGUI extends JPanel {
     }
     public void newGroupMessage(String nickname, String message){
         //todo: need to check if this selection works
-        chatPane.setSelectedComponent(groupChatTab);
         groupChatTab.addMessage(nickname, message);
     }
 
@@ -118,7 +116,6 @@ public class ClientGUI extends JPanel {
 
     public void newGroupFileMessage(String nickname, File file){
         //todo: need to check if this selection works
-        chatPane.setSelectedComponent(groupChatTab);
         groupChatTab.addMessage(nickname, "has uploaded "+file.getName());
     }
 
@@ -130,6 +127,7 @@ public class ClientGUI extends JPanel {
             chatPane.addTab(nickname, privateChatGUI);
             chatPane.setSelectedComponent(privateChatGUI);
         }
+        privateChatTabs.get(nickname).addMessage(nickname, "has uploaded "+file.getName());
     }
 
     public void addClient(String nickname, InetAddress address){
@@ -141,5 +139,9 @@ public class ClientGUI extends JPanel {
     public void removeClient(String nickname){
         clients.remove(nickname);
         clientListModel.removeElement(nickname);
+        if(privateChatTabs.containsKey(nickname)){
+            chatPane.remove(privateChatTabs.get(nickname));
+            privateChatTabs.remove(nickname);
+        }
     }
 }

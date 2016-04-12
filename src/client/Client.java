@@ -110,11 +110,11 @@ public class Client {
         sender.sendMessage(destination, message);
     }
     //todo: implement how to send a file to the group
-    public void sendGroupFileMessage(File file, String fileName){
+    public void sendGroupFileMessage(byte[] data, String fileName){
 
     }
     //todo: implement how to send a file privately
-    public void sendPrivateFileMessage(String nickname, File file, String fileName){
+    public void sendPrivateFileMessage(String nickname, byte[] data, String fileName){
 
     }
 

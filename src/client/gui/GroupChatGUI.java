@@ -10,6 +10,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
@@ -120,8 +122,15 @@ public class GroupChatGUI extends JPanel {
             if(selection == JFileChooser.APPROVE_OPTION){
                 File file = fileChooser.getSelectedFile();
                 //needs attention (what is neccesary to send a file?)
-                clientGUI.getClient().sendGroupFileMessage(file, file.getName());
-                addMessage(nickname, file.getName()+" has been sent!");
+
+                try {
+                    byte[] data = Files.readAllBytes(Paths.get(file.getPath()));
+                    clientGUI.getClient().sendGroupFileMessage(data, file.getName());
+                    addMessage(nickname, file.getName()+" has been sent!");
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+
             }
         }
     }

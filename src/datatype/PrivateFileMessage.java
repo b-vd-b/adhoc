@@ -10,11 +10,9 @@ import java.io.File;
 public class PrivateFileMessage extends Message {
 
     private boolean encrypted;
-    private File file;
 
-    public PrivateFileMessage(boolean encrypted, File file, String checksum){
+    public PrivateFileMessage(boolean encrypted, byte[] data, String checksum){
         this.encrypted = encrypted;
-        this.file = file;
     }
 
     public boolean isEncrypted() {

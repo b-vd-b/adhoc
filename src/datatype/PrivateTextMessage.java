@@ -12,9 +12,7 @@ public class PrivateTextMessage extends Message {
         this.checksum = checksum;
     }
 
-    public boolean isEncrypted() {
-        return encrypted;
-    }
+    public boolean isEncrypted() { return encrypted; }
 
     public String getMessage() {
         return message;

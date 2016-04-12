@@ -131,9 +131,13 @@ public class ClientGUI extends JPanel {
     }
 
     public void addClient(String nickname, InetAddress address){
-        clients.put(nickname, address);
-        clientListModel.addElement(nickname);
-
+        SwingUtilities.invokeLater(new Runnable() {
+                                       @Override
+                                       public void run() {
+                                           clients.put(nickname, address);
+                                           clientListModel.addElement(nickname);
+                                       }
+                                   });
     }
 
     public void removeClient(String nickname){

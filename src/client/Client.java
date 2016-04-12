@@ -120,10 +120,6 @@ public class Client {
     }
 
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {
-        //Check to see if the broadcastMessage is valid
-        if (message == null || address == null) {
-            return;
-        }
         //Add the neighbour to the lastRoundNeighbours HashMap
         if (!lastRoundNeighbours.containsKey(address)) {
             lastRoundNeighbours.put(address, message.getNickname());
@@ -134,16 +130,18 @@ public class Client {
             destinations.put(address, message.getNickname());
             nextHop.put(address, address);
             clientGUI.addClient(message.getNickname(), address);
+            encryptionKeys.put(address, message.getPublicKeys().get(address));
         }
 
         //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
-        message.getDestinations().keySet().stream().filter(e -> !destinations.containsKey(e)).filter(e -> !e.equals(Client.LOCAL_ADDRESS)).forEach(e -> {
-            destinations.put(e, message.getDestinations().get(e));
-            nextHop.put(e, address);
-        });
-
-        //Add public keys of the neighbours of the received neighbour in own HashMap
-        message.getPublicKeys().keySet().stream().filter(e -> !encryptionKeys.containsKey(e)).forEach(e -> encryptionKeys.put(e, message.getPublicKeys().get(e)));
+        for (InetAddress e : message.getDestinations().keySet()) {
+            if (!destinations.containsKey(e)) {
+                destinations.put(e, message.getDestinations().get(e));
+                nextHop.put(e, address);
+                clientGUI.addClient(message.getDestinations().get(e), e);
+                encryptionKeys.put(e, message.getPublicKeys().get(e));
+            }
+        }
     }
 
     public synchronized void updateNeighbours() {

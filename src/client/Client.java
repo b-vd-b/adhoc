@@ -43,7 +43,7 @@ public class Client {
 
     public Client(String nickname) {
         encryption = new Encryption();
-
+        clientGUI = new ClientGUI(nickname, this);
         InetAddress group;
         try {
             group = InetAddress.getByName(MULTICAST_ADDRESS);
@@ -68,7 +68,7 @@ public class Client {
         }
 
         new Thread(new NodeUpdater(this)).start();
-        clientGUI = new ClientGUI(nickname, this);
+
     }
 
     public static void main(String[] args) throws IOException {
@@ -127,7 +127,7 @@ public class Client {
         //Add the neighbour to the lastRoundNeighbours HashMap
         if (!lastRoundNeighbours.containsKey(address)) {
             lastRoundNeighbours.put(address, message.getNickname());
-        } else return;
+        }
 
         //Add the neighbour to the destination and nextHop HashMap if it isn't already
         if (!destinations.containsKey(address)) {

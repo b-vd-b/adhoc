@@ -136,10 +136,12 @@ public class Client {
         //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
         for (InetAddress e : message.getDestinations().keySet()) {
             if (!destinations.containsKey(e)) {
-                destinations.put(e, message.getDestinations().get(e));
-                nextHop.put(e, address);
-                clientGUI.addClient(message.getDestinations().get(e), e);
-                encryptionKeys.put(e, message.getPublicKeys().get(e));
+                if (!e.equals(LOCAL_ADDRESS)) {
+                    destinations.put(e, message.getDestinations().get(e));
+                    nextHop.put(e, address);
+                    clientGUI.addClient(message.getDestinations().get(e), e);
+                    encryptionKeys.put(e, message.getPublicKeys().get(e));
+                }
             }
         }
     }

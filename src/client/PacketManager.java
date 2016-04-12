@@ -67,9 +67,11 @@ class PacketManager {
         }
 
         for (Packet receivedPacket : receivedPackets.get(packet.getSourceAddress())) {
-            if (receivedPacket.getSequenceNumber() == packet.getSequenceNumber()) {
-                if (receivedPacket.getLength() == packet.getLength()) {
-                    return true;
+            if (receivedPacket.getDestinationAddress().equals(packet.getDestinationAddress())) {
+                if (receivedPacket.getSequenceNumber() == packet.getSequenceNumber()) {
+                    if (receivedPacket.getLength() == packet.getLength()) {
+                        return true;
+                    }
                 }
             }
         }

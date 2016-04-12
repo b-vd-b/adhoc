@@ -147,6 +147,24 @@ public class Client {
                 }
             }
         }
+
+        //Delete the neighbours that aren't reachable anymore through this neighbour if there are any
+        List<InetAddress> localDestinations = new ArrayList<>();
+        for (InetAddress e : nextHop.keySet()) {
+            if (nextHop.get(e).equals(address)) {
+                localDestinations.add(e);
+            }
+        }
+
+        for (InetAddress e : localDestinations) {
+            if (!message.getDestinations().containsKey(e)) {
+                clientGUI.removeClient(destinations.get(e));
+                destinations.remove(e);
+                nextHop.remove(e);
+                encryptionKeys.remove(e);
+            }
+        }
+        System.out.println("Destinations: " + destinations.keySet().toString());
     }
 
     public synchronized void updateNeighbours() {
@@ -154,6 +172,7 @@ public class Client {
         List<InetAddress> droppedNeighbours = new ArrayList<>();
         neighbours.keySet().stream().filter(e -> !lastRoundNeighbours.containsKey(e)).forEach(droppedNeighbours::add);
 
+        System.out.println("Dropped neighbours: " + droppedNeighbours.toString());
         //Remove all the destinations that were associated with the dropped neighbours
         List<InetAddress> toRemoveDestinations = new ArrayList<>();
         for (InetAddress e : nextHop.keySet()) {

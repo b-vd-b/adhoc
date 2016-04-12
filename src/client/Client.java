@@ -92,7 +92,6 @@ public class Client {
     }
 
     public void sendGroupTextMessage(String contents) throws IOException {
-        System.out.println(clientGUI.getClients().values().toString());
         Message message = new GroupTextMessage(contents, "");
         for (InetAddress destination : clientGUI.getClients().values()) {
             sender.sendMessage(destination, message);
@@ -129,7 +128,7 @@ public class Client {
         //Add the neighbour to the destination and nextHop HashMap if it isn't already
         if (!destinations.containsKey(address)) {
             destinations.put(address, message.getNickname());
-            nextHop.put(address, address);
+            nextHop.put(address, LOCAL_ADDRESS);
             clientGUI.addClient(message.getNickname(), address);
             encryptionKeys.put(address, message.getPublicKeys().get(address));
         }
@@ -164,7 +163,6 @@ public class Client {
                 encryptionKeys.remove(e);
             }
         }
-        System.out.println("Destinations: " + destinations.keySet().toString());
     }
 
     public synchronized void updateNeighbours() {
@@ -172,7 +170,6 @@ public class Client {
         List<InetAddress> droppedNeighbours = new ArrayList<>();
         neighbours.keySet().stream().filter(e -> !lastRoundNeighbours.containsKey(e)).forEach(droppedNeighbours::add);
 
-        System.out.println("Dropped neighbours: " + droppedNeighbours.toString());
         //Remove all the destinations that were associated with the dropped neighbours
         List<InetAddress> toRemoveDestinations = new ArrayList<>();
         for (InetAddress e : nextHop.keySet()) {

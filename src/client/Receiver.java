@@ -123,6 +123,7 @@ class Receiver implements Runnable {
 
             fileOutputStream.close();
             fileOutputStream.flush();
+            acknowledgePacket(packet);
         }
     }
 

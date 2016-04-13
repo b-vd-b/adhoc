@@ -6,6 +6,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import java.io.*;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.security.InvalidKeyException;
 
@@ -36,6 +37,10 @@ class Receiver implements Runnable {
                 Packet packet = new Packet(buffer);
                 Message message = packet.getPayload();
 
+                //creating a pipeline
+                //if (datagramPacket.getAddress().equals(InetAddress.getByName("192.168.5.1"))||datagramPacket.getAddress().equals(InetAddress.getByName("192.168.5.2"))){
+                //     continue;
+                // }
                 // Ignore all packets with invalid fields.
                 if (isInvalidPacket(packet)) {
                     continue;

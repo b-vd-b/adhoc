@@ -11,11 +11,12 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
+import static util.Variables.MAXIMUM_RETRANSMIT_ATTEMPTS;
+import static util.Variables.SLEEP;
+
 class KeepAlive implements Runnable {
 
     private MulticastSocket mcSocket;
-    private static final int SLEEP = 500;
-    private static final int MAXIMUM_RETRANSMIT_ATTEMPTS = 3;
     private String nickname;
     private Client client;
     private PacketManager packetManager;
@@ -46,7 +47,7 @@ class KeepAlive implements Runnable {
                 for (Packet packet : packetManager.getUnacknowledgedPackets().keySet()) {
                     int attempts = packetManager.getUnacknowledgedPackets().get(packet);
 
-                    if (attempts == MAXIMUM_RETRANSMIT_ATTEMPTS) {
+                    if (attempts == MAXIMUM_RETRANSMIT_ATTEMPTS && !client.getDestinations().containsKey(packet.getDestinationAddress())) {
                         toRemove.add(packet);
                     } else {
                         packetManager.getUnacknowledgedPackets().put(packet, attempts + 1);

@@ -1,6 +1,10 @@
 package client.gui;
 
+import util.Variables;
+
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Style;
@@ -10,14 +14,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
 
 import static java.awt.GridBagConstraints.HORIZONTAL;
 import static java.awt.GridBagConstraints.NONE;
+import static util.Variables.MAXIMUM_FILE_SIZE;
 
 /**
  * Created by bvdb on 6-4-2016.
@@ -27,6 +30,7 @@ public class PrivateChatGUI extends JPanel {
     private String nickname;
     private ClientGUI clientGUI;
 
+    private JLabel label;
     private JFileChooser fileChooser;
     private JTextPane textArea;
     private JButton sendButton;
@@ -59,19 +63,48 @@ public class PrivateChatGUI extends JPanel {
             //do the following when a file has been selected
             if(selection == JFileChooser.APPROVE_OPTION){
                 File file = fileChooser.getSelectedFile();
-                //needs attention (what is neccesary to send a file?)
-                try {
-                    byte[] data = Files.readAllBytes(Paths.get(file.getPath()));
-                    clientGUI.getClient().sendPrivateFileMessage(nickname, data, file.getName());
-                    addMessage(nickname, "uploaded "+file.getName());
-                } catch (IOException e1) {
-                    addMessage(nickname, "failed to upload "+file.getName());
+                if(file.length()> MAXIMUM_FILE_SIZE){
+                    JOptionPane.showMessageDialog(null,
+                            "Error: Files can at most be "+MAXIMUM_FILE_SIZE/1000000+" MB large", "Error Massage",
+                            JOptionPane.ERROR_MESSAGE);
+                } else {
+                    clientGUI.getClient().sendPrivateFileMessage(nickname, file, file.getName());
+                    addMessage(nickname, "uploaded " + file.getName());
                 }
-
             }
         }
     }
 
+    private class InputFieldListener implements DocumentListener {
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            String msg = inputField.getText();
+            label.setText(msg.length()+"/140");
+            warn();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            String msg = inputField.getText();
+            label.setText(msg.length()+"/140");
+            warn();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            String msg = inputField.getText();
+            label.setText(msg.length()+"/140");
+            warn();
+        }
+        public void warn() {
+            if ((inputField.getText().length())>140){
+                JOptionPane.showMessageDialog(null,
+                        "Error: Please enter 140 or less characters", "Error Massage",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
     public PrivateChatGUI(String nickname, ClientGUI clientGUI){
         this.nickname = nickname;
         this.clientGUI = clientGUI;
@@ -86,9 +119,12 @@ public class PrivateChatGUI extends JPanel {
         //create the input panel (inputField, sendButton fileSendButton)
         JPanel inputPanel = new JPanel(new GridBagLayout());
         inputField = new JTextField();
+        inputField.setDocument(new JTextFieldLimit(140));
+        inputField.getDocument().addDocumentListener(new InputFieldListener());
         inputField.addActionListener(new SendMessageActionListener());
 
-        //create the send and file send button
+        //create the label, send and file send button
+        label = new JLabel("0/140");
         sendButton = new JButton("SEND MESSAGE");
         sendButton.setSize(50,10);
         sendButton.addActionListener(new SendMessageActionListener());
@@ -106,6 +142,7 @@ public class PrivateChatGUI extends JPanel {
         //reset gbc to original state for the buttons
         gbc.weightx = 0.0;
         gbc.fill = NONE;
+        inputPanel.add(label, gbc);
         inputPanel.add(sendButton, gbc);
         inputPanel.add(fileButton, gbc);
 

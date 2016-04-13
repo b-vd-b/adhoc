@@ -20,10 +20,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+import static util.Variables.MULTICAST_ADDRESS;
+import static util.Variables.PORT;
+
 public class Client {
 
-    public static final String MULTICAST_ADDRESS = "228.1.1.1";
-    public static final int PORT = 6789;
+
     private static final boolean DEBUG_MODE = false;
 
     static InetAddress LOCAL_ADDRESS;
@@ -110,11 +112,11 @@ public class Client {
         sender.sendMessage(destination, message);
     }
     //todo: implement how to send a file to the group
-    public void sendGroupFileMessage(byte[] data, String fileName){
+    public void sendGroupFileMessage(File file, String fileName){
 
     }
     //todo: implement how to send a file privately
-    public void sendPrivateFileMessage(String nickname, byte[] data, String fileName){
+    public void sendPrivateFileMessage(String nickname, File file, String fileName){
 
     }
 

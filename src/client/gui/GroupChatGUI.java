@@ -20,6 +20,7 @@ import java.util.Date;
 
 import static java.awt.GridBagConstraints.HORIZONTAL;
 import static java.awt.GridBagConstraints.NONE;
+import static util.Variables.MAXIMUM_FILE_SIZE;
 
 /**
  * Created by bvdb on 6-4-2016.
@@ -40,7 +41,7 @@ public class GroupChatGUI extends JPanel {
     private Style style = context.addStyle("Style", null);
 
 
-    public GroupChatGUI(String nickname, ClientGUI clientGUI){
+    public GroupChatGUI(String nickname, ClientGUI clientGUI) {
         this.nickname = nickname;
         this.clientGUI = clientGUI;
         setLayout(new BorderLayout());
@@ -49,7 +50,7 @@ public class GroupChatGUI extends JPanel {
         textArea = new JTextPane(document);
         textArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(textArea);
-        add(scrollPane,BorderLayout.CENTER);
+        add(scrollPane, BorderLayout.CENTER);
 
         //create the input panel (inputField, sendButton fileSendButton)
         JPanel inputPanel = new JPanel(new GridBagLayout());
@@ -61,11 +62,11 @@ public class GroupChatGUI extends JPanel {
         //create the label, send and file send button
         label = new JLabel("0/140");
         sendButton = new JButton("SEND MESSAGE");
-        sendButton.setSize(50,10);
+        sendButton.setSize(50, 10);
         sendButton.addActionListener(new SendMessageActionListener());
         fileChooser = new JFileChooser();
         fileButton = new JButton("SEND FILE");
-        fileButton.setSize(50,10);
+        fileButton.setSize(50, 10);
         fileButton.addActionListener(new SendFileActionListener());
 
 
@@ -84,18 +85,16 @@ public class GroupChatGUI extends JPanel {
         add(inputPanel, BorderLayout.SOUTH);
 
 
-
-
     }
 
-    public void addMessage(String nickname, String message){
+    public void addMessage(String nickname, String message) {
 
         Calendar calendar = Calendar.getInstance();
         Date now = calendar.getTime();
         Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
 
         try {
-            document.insertString(document.getLength(), "["+currentTimestamp+"] "+nickname+": "+message, style);
+            document.insertString(document.getLength(), "[" + currentTimestamp + "] " + nickname + ": " + message, style);
             //BufferedImage img = ImageIO.read(new File("PATH"));
             //ImageIcon pictureImage = new ImageIcon(img);
             //textArea.insertIcon(pictureImage);
@@ -105,42 +104,44 @@ public class GroupChatGUI extends JPanel {
         }
     }
 
-    private class InputFieldListener implements DocumentListener{
+    private class InputFieldListener implements DocumentListener {
 
         @Override
         public void insertUpdate(DocumentEvent e) {
             String msg = inputField.getText();
-            label.setText(msg.length()+"/140");
+            label.setText(msg.length() + "/140");
             warn();
         }
 
         @Override
         public void removeUpdate(DocumentEvent e) {
             String msg = inputField.getText();
-            label.setText(msg.length()+"/140");
+            label.setText(msg.length() + "/140");
             warn();
         }
 
         @Override
         public void changedUpdate(DocumentEvent e) {
             String msg = inputField.getText();
-            label.setText(msg.length()+"/140");
+            label.setText(msg.length() + "/140");
             warn();
         }
+
         public void warn() {
-            if ((inputField.getText().length())>140){
+            if ((inputField.getText().length()) > 140) {
                 JOptionPane.showMessageDialog(null,
                         "Error: Please enter 140 or less characters", "Error Massage",
                         JOptionPane.ERROR_MESSAGE);
             }
         }
     }
+
     private class SendMessageActionListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {
             String msg = inputField.getText();
             inputField.setText("");
-            if(msg.length() > 0){
+            if (msg.length() > 0) {
                 try {
                     clientGUI.getClient().sendGroupTextMessage(msg);
                 } catch (IOException e1) {
@@ -156,18 +157,16 @@ public class GroupChatGUI extends JPanel {
         public void actionPerformed(ActionEvent e) {
             int selection = fileChooser.showOpenDialog(null);
             //do the following when a file has been selected
-            if(selection == JFileChooser.APPROVE_OPTION){
+            if (selection == JFileChooser.APPROVE_OPTION) {
                 File file = fileChooser.getSelectedFile();
-                //needs attention (what is neccesary to send a file?)
-
-                try {
-                    byte[] data = Files.readAllBytes(Paths.get(file.getPath()));
-                    clientGUI.getClient().sendGroupFileMessage(data, file.getName());
-                    addMessage(nickname, file.getName()+" has been sent!");
-                } catch (IOException e1) {
-                    e1.printStackTrace();
+                if (file.length() > MAXIMUM_FILE_SIZE) {
+                    JOptionPane.showMessageDialog(null,
+                            "Error: Files can at most be "+MAXIMUM_FILE_SIZE/1000000+" MB large", "Error Massage",
+                            JOptionPane.ERROR_MESSAGE);
+                } else {
+                    clientGUI.getClient().sendGroupFileMessage(file, file.getName());
+                    addMessage(nickname, file.getName() + " has been sent!");
                 }
-
             }
         }
     }

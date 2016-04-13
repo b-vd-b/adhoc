@@ -1,6 +1,8 @@
 package client.gui;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Style;
@@ -27,6 +29,7 @@ public class GroupChatGUI extends JPanel {
     private String nickname;
     private ClientGUI clientGUI;
 
+    private JLabel label;
     private JTextPane textArea;
     private JButton sendButton;
     private JButton fileButton;
@@ -51,9 +54,12 @@ public class GroupChatGUI extends JPanel {
         //create the input panel (inputField, sendButton fileSendButton)
         JPanel inputPanel = new JPanel(new GridBagLayout());
         inputField = new JTextField();
+        inputField.setDocument(new JTextFieldLimit(140));
+        inputField.getDocument().addDocumentListener(new InputFieldListener());
         inputField.addActionListener(new SendMessageActionListener());
 
-        //create the send and file send button
+        //create the label, send and file send button
+        label = new JLabel("0/140");
         sendButton = new JButton("SEND MESSAGE");
         sendButton.setSize(50,10);
         sendButton.addActionListener(new SendMessageActionListener());
@@ -71,6 +77,7 @@ public class GroupChatGUI extends JPanel {
         //reset gbc to original state for the buttons
         gbc.weightx = 0.0;
         gbc.fill = NONE;
+        inputPanel.add(label, gbc);
         inputPanel.add(sendButton, gbc);
         inputPanel.add(fileButton, gbc);
 
@@ -98,6 +105,36 @@ public class GroupChatGUI extends JPanel {
         }
     }
 
+    private class InputFieldListener implements DocumentListener{
+
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            String msg = inputField.getText();
+            label.setText(msg.length()+"/140");
+            warn();
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            String msg = inputField.getText();
+            label.setText(msg.length()+"/140");
+            warn();
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            String msg = inputField.getText();
+            label.setText(msg.length()+"/140");
+            warn();
+        }
+        public void warn() {
+            if ((inputField.getText().length())>140){
+                JOptionPane.showMessageDialog(null,
+                        "Error: Please enter 140 or less characters", "Error Massage",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
     private class SendMessageActionListener implements ActionListener {
 
         public void actionPerformed(ActionEvent e) {

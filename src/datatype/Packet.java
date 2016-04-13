@@ -1,6 +1,7 @@
 package datatype;
 
 import client.Client;
+import util.Variables;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -72,6 +73,6 @@ public class Packet implements Serializable {
         byte[] buf = Arrays.copyOf(bos.toByteArray(),bos.toByteArray().length);
         out.close();
 
-        return new DatagramPacket(buf, buf.length, InetAddress.getByName(Client.MULTICAST_ADDRESS), Client.PORT);
+        return new DatagramPacket(buf, buf.length, InetAddress.getByName(Variables.MULTICAST_ADDRESS), Variables.PORT);
     }
 }

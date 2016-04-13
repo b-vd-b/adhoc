@@ -68,7 +68,7 @@ public class PrivateChatGUI extends JPanel {
                             "Error: Files can at most be "+MAXIMUM_FILE_SIZE/1000000+" MB large", "Error Massage",
                             JOptionPane.ERROR_MESSAGE);
                 } else {
-                    clientGUI.getClient().sendPrivateFileMessage(nickname, file, file.getName());
+                    clientGUI.getClient().sendPrivateFileMessage(nickname, file);
                     addMessage(nickname, "uploaded " + file.getName());
                 }
             }

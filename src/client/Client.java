@@ -26,7 +26,7 @@ import static util.Variables.PORT;
 public class Client {
 
 
-    private static final boolean DEBUG_MODE = false;
+    private static final boolean DEBUG_MODE = true;
 
     static InetAddress LOCAL_ADDRESS;
     private static InetAddress GROUP_CHAT_ADDRESS;
@@ -112,12 +112,12 @@ public class Client {
         sender.sendMessage(destination, message);
     }
     //todo: implement how to send a file to the group
-    public void sendGroupFileMessage(File file, String fileName){
+    public void sendGroupFileMessage(File file) {
 
     }
     //todo: implement how to send a file privately
-    public void sendPrivateFileMessage(String nickname, File file, String fileName){
-
+    public void sendPrivateFileMessage(String nickname, File file) {
+        new Thread(new FileTransferSender(mcSocket, packetManager, file, clientGUI.getClients().get(nickname))).start();
     }
 
     synchronized void addNeighbour(InetAddress address, BroadcastMessage message) throws UnknownHostException {

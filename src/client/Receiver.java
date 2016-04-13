@@ -8,7 +8,10 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
+import java.util.Arrays;
 
 class Receiver implements Runnable {
 
@@ -105,6 +108,20 @@ class Receiver implements Runnable {
 
         } else if (message instanceof PrivateFileMessage){
 
+        } else if (message instanceof FileTransferMessage) {
+            FileTransferMessage fileTransfer = (FileTransferMessage) message;
+            Path HOME_DIR = Paths.get(System.getProperty("user.home")).resolve("Downloads");
+            File file = HOME_DIR.resolve(fileTransfer.getFileName()).toFile();
+            FileOutputStream fileOutputStream = new FileOutputStream(file, true);
+
+            System.out.println("Total Length: " + fileTransfer.getLength());
+            System.out.println("Fragment Size: " + fileTransfer.getFragmentSize());
+            System.out.println("Offset: " + fileTransfer.getOffset());
+            System.out.println("-----------------------------------");
+
+            fileOutputStream.write(((FileTransferMessage) message).getFragment(), fileTransfer.getOffset(), fileTransfer.getLength());
+            fileOutputStream.flush();
+            fileOutputStream.close();
         }
     }
 

@@ -152,11 +152,10 @@ public class PrivateChatGUI extends JPanel {
 
     public void addMessage(String nickname, String message){
         Calendar calendar = Calendar.getInstance();
-        Date now = calendar.getTime();
-        Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
+        String time = ""+calendar.get(Calendar.HOUR_OF_DAY)+":"+calendar.get(Calendar.MINUTE);
 
         try {
-            document.insertString(document.getLength(), "["+currentTimestamp+"] "+nickname+": "+message+"\n", style);
+            document.insertString(document.getLength(), "["+time+"] "+nickname+": "+message+"\n", style);
         } catch (BadLocationException e) {
             e.printStackTrace();
         }

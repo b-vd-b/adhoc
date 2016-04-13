@@ -12,8 +12,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Date;
@@ -90,11 +88,10 @@ public class GroupChatGUI extends JPanel {
     public void addMessage(String nickname, String message) {
 
         Calendar calendar = Calendar.getInstance();
-        Date now = calendar.getTime();
-        Timestamp currentTimestamp = new java.sql.Timestamp(now.getTime());
+        String time = ""+calendar.get(Calendar.HOUR_OF_DAY)+":"+calendar.get(Calendar.MINUTE);
 
         try {
-            document.insertString(document.getLength(), "[" + currentTimestamp + "] " + nickname + ": " + message, style);
+            document.insertString(document.getLength(), "[" + time + "] " + nickname + ": " + message, style);
             //BufferedImage img = ImageIO.read(new File("PATH"));
             //ImageIcon pictureImage = new ImageIcon(img);
             //textArea.insertIcon(pictureImage);

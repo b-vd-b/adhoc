@@ -10,6 +10,8 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.HashMap;
 
+import static util.Variables.PROGRAM_NAME;
+
 /**
  * Created by bvdb on 6-4-2016.
  */
@@ -59,7 +61,7 @@ public class ClientGUI extends JPanel {
         this.client = client;
         this.clients = new HashMap<>();
         this.privateChatTabs = new HashMap<>();
-        mainChat = new JFrame("Awesome ad hoc Chat program");
+        mainChat = new JFrame(PROGRAM_NAME);
         mainChat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainChat.setMinimumSize(new Dimension(800, 600));
         mainChat.setSize(800,600);
@@ -131,13 +133,10 @@ public class ClientGUI extends JPanel {
     }
 
     public void addClient(String nickname, InetAddress address){
-        SwingUtilities.invokeLater(new Runnable() {
-                                       @Override
-                                       public void run() {
-                                           clients.put(nickname, address);
-                                           clientListModel.addElement(nickname);
-                                       }
-                                   });
+        SwingUtilities.invokeLater(() -> {
+            clients.put(nickname, address);
+            clientListModel.addElement(nickname);
+        });
     }
 
     public void removeClient(String nickname){

@@ -2,6 +2,7 @@ package client;
 
 import datatype.FileTransferMessage;
 import datatype.Message;
+import util.Checksum;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,7 +39,7 @@ public class FileTransferSender implements Runnable {
                     buffer = Arrays.copyOfRange(buffer, 0, read);
                 }
 
-                Message fileTransfer = new FileTransferMessage(file.getName(), offset, buffer, size, totalPackets);
+                Message fileTransfer = new FileTransferMessage(file.getName(), offset, buffer, size, totalPackets, Checksum.getCrcValue(buffer));
                 offset += read;
                 sender.sendMessage(destination, fileTransfer);
             }

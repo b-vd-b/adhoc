@@ -7,13 +7,15 @@ public class FileTransferMessage extends Message {
     private byte[] fragment;
     private int fileLength;
     private int totalPackets;
+    private long checksum;
 
-    public FileTransferMessage(String fileName, int offset, byte[] fragment, int fileLength, int totalPackets) {
+    public FileTransferMessage(String fileName, int offset, byte[] fragment, int fileLength, int totalPackets, long checksum) {
         this.fileName = fileName;
         this.offset = offset;
         this.fragment = fragment;
         this.fileLength = fileLength;
         this.totalPackets = totalPackets;
+        this.checksum = checksum;
     }
 
     public int getTotalPackets() {
@@ -34,5 +36,9 @@ public class FileTransferMessage extends Message {
 
     public int getFileLength() {
         return fileLength;
+    }
+
+    public long getChecksum() {
+        return checksum;
     }
 }

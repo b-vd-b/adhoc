@@ -1,18 +1,15 @@
 package client;
 
 import datatype.*;
+import util.Checksum;
 import util.Variables;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import java.io.*;
 import java.net.DatagramPacket;
-import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
@@ -27,7 +24,7 @@ class Receiver implements Runnable {
     private PacketManager packetManager;
 
     private byte[] currentFile;
-    private int currentPacket;
+    private int filePacketCount;
 
     Receiver(Client client, Sender sender, MulticastSocket socket, PacketManager packetManager) throws IOException {
         this.client = client;
@@ -51,6 +48,7 @@ class Receiver implements Runnable {
                 //if (datagramPacket.getAddress().equals(InetAddress.getByName("192.168.5.1"))||datagramPacket.getAddress().equals(InetAddress.getByName("192.168.5.2"))){
                 //     continue;
                 // }
+
                 // Ignore all packets with invalid fields.
                 if (isInvalidPacket(packet)) {
                     continue;
@@ -65,6 +63,12 @@ class Receiver implements Runnable {
                 if (message instanceof BroadcastMessage) {
                     client.addNeighbour(packet.getSourceAddress(), ((BroadcastMessage) message));
                     continue;
+                }
+
+                if (message instanceof FileTransferMessage) {
+                    if (Checksum.getCrcValue(((FileTransferMessage) message).getFragment()) != ((FileTransferMessage) message).getChecksum()) {
+                        continue;
+                    }
                 }
 
                 // Ignore packets that have been received earlier and are retransmitted by neighbours.
@@ -117,20 +121,22 @@ class Receiver implements Runnable {
 
         } else if (message instanceof FileTransferMessage) {
             FileTransferMessage fileTransfer = (FileTransferMessage) message;
+
             File file = Variables.DOWNLOADS_DIRECTORY.resolve(fileTransfer.getFileName()).toFile();
 
-            if (currentPacket == 0) {
+            if (filePacketCount == 0) {
                 currentFile = new byte[fileTransfer.getFileLength()];
             }
 
             System.arraycopy(fileTransfer.getFragment(), 0, currentFile, fileTransfer.getOffset(), fileTransfer.getFragment().length);
-            currentPacket++;
+            filePacketCount++;
 
-            if (currentPacket == fileTransfer.getTotalPackets()) {
+            if (filePacketCount == fileTransfer.getTotalPackets()) {
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 fileOutputStream.write(currentFile);
-                fileOutputStream.close();
                 fileOutputStream.flush();
+                fileOutputStream.close();
+                filePacketCount = 0;
             }
 
             acknowledgePacket(packet);

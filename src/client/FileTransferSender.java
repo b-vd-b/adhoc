@@ -36,7 +36,7 @@ public class FileTransferSender implements Runnable {
                     buffer = Arrays.copyOfRange(buffer, 0, read);
                 }
 
-                Message fileTransfer = new FileTransferMessage(file.getName(), (int) file.length(), offset, read, buffer);
+                Message fileTransfer = new FileTransferMessage(file.getName(), offset, buffer);
                 offset += read;
                 sender.sendMessage(destination, fileTransfer);
             }

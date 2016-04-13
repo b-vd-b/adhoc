@@ -1,5 +1,8 @@
 package util;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 /**
  * Created by bvdb on 13-4-2016.
  */
@@ -11,6 +14,11 @@ public class Variables {
      */
     public static final String PROGRAM_NAME = "Awesome ad hoc chat!";
 
+    /**
+     * The location in which file downloads should be saved.
+     */
+    public static final Path DOWNLOADS_DIRECTORY = Paths.get(System.getProperty("user.home")).resolve("adhoc-downloads");
+    
     /**
      * This is the maximum file size allowed for file transfers used by GroupChatGUI and PrivateChatGUI.
      */

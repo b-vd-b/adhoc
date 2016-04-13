@@ -5,6 +5,7 @@ import client.gui.LoginGUI;
 import client.routing.NodeUpdater;
 import datatype.*;
 import util.Encryption;
+import util.Variables;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -13,6 +14,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -43,6 +45,11 @@ public class Client {
     private MulticastSocket mcSocket;
 
     public Client(String nickname) {
+        if (!Files.exists(Variables.DOWNLOADS_DIRECTORY)) {
+            File folder = new File(Variables.DOWNLOADS_DIRECTORY.toString());
+            folder.mkdirs();
+        }
+
         encryption = new Encryption();
         clientGUI = new ClientGUI(nickname, this);
         InetAddress group;

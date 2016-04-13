@@ -1,6 +1,7 @@
 package client;
 
 import datatype.*;
+import util.Variables;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -8,6 +9,9 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
@@ -110,18 +114,15 @@ class Receiver implements Runnable {
 
         } else if (message instanceof FileTransferMessage) {
             FileTransferMessage fileTransfer = (FileTransferMessage) message;
-            Path HOME_DIR = Paths.get(System.getProperty("user.home")).resolve("Downloads");
-            File file = HOME_DIR.resolve(fileTransfer.getFileName()).toFile();
+            File file = Variables.DOWNLOADS_DIRECTORY.resolve(fileTransfer.getFileName()).toFile();
             FileOutputStream fileOutputStream = new FileOutputStream(file, true);
 
-            System.out.println("Total Length: " + fileTransfer.getLength());
-            System.out.println("Fragment Size: " + fileTransfer.getFragmentSize());
-            System.out.println("Offset: " + fileTransfer.getOffset());
-            System.out.println("-----------------------------------");
+            FileChannel ch = fileOutputStream.getChannel();
+            ch.position(fileTransfer.getOffset());
+            ch.write(ByteBuffer.wrap(fileTransfer.getFragment()));
 
-            fileOutputStream.write(((FileTransferMessage) message).getFragment(), fileTransfer.getOffset(), fileTransfer.getLength());
-            fileOutputStream.flush();
             fileOutputStream.close();
+            fileOutputStream.flush();
         }
     }
 

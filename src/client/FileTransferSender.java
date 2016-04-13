@@ -30,13 +30,15 @@ public class FileTransferSender implements Runnable {
             byte[] buffer = new byte[512];
 
             int offset = 0;
+            int size = fileInputStream.available();
+            int totalPackets = (int) Math.ceil(size / 512D);
 
             while ((read = fileInputStream.read(buffer, 0, buffer.length)) != -1) {
                 if (read != buffer.length) {
                     buffer = Arrays.copyOfRange(buffer, 0, read);
                 }
 
-                Message fileTransfer = new FileTransferMessage(file.getName(), offset, buffer);
+                Message fileTransfer = new FileTransferMessage(file.getName(), offset, buffer, size, totalPackets);
                 offset += read;
                 sender.sendMessage(destination, fileTransfer);
             }

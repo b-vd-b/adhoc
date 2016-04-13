@@ -28,7 +28,7 @@ import static util.Variables.PORT;
 public class Client {
 
 
-    private static final boolean DEBUG_MODE = true;
+    private static final boolean DEBUG_MODE = false;
 
     static InetAddress LOCAL_ADDRESS;
     private static InetAddress GROUP_CHAT_ADDRESS;

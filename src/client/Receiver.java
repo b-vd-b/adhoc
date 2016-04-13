@@ -26,6 +26,9 @@ class Receiver implements Runnable {
     private MulticastSocket socket;
     private PacketManager packetManager;
 
+    private byte[] currentFile;
+    private int currentPacket;
+
     Receiver(Client client, Sender sender, MulticastSocket socket, PacketManager packetManager) throws IOException {
         this.client = client;
         this.sender = sender;
@@ -115,14 +118,21 @@ class Receiver implements Runnable {
         } else if (message instanceof FileTransferMessage) {
             FileTransferMessage fileTransfer = (FileTransferMessage) message;
             File file = Variables.DOWNLOADS_DIRECTORY.resolve(fileTransfer.getFileName()).toFile();
-            FileOutputStream fileOutputStream = new FileOutputStream(file, true);
 
-            FileChannel ch = fileOutputStream.getChannel();
-            ch.position(fileTransfer.getOffset());
-            ch.write(ByteBuffer.wrap(fileTransfer.getFragment()));
+            if (currentPacket == 0) {
+                currentFile = new byte[fileTransfer.getFileLength()];
+            }
 
-            fileOutputStream.close();
-            fileOutputStream.flush();
+            System.arraycopy(fileTransfer.getFragment(), 0, currentFile, fileTransfer.getOffset(), fileTransfer.getFragment().length);
+            currentPacket++;
+
+            if (currentPacket == fileTransfer.getTotalPackets()) {
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
+                fileOutputStream.write(currentFile);
+                fileOutputStream.close();
+                fileOutputStream.flush();
+            }
+
             acknowledgePacket(packet);
         }
     }

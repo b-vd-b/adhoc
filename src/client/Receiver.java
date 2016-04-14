@@ -116,12 +116,7 @@ class Receiver implements Runnable {
         } else if (message instanceof PrivateTextMessage) {
             queue.putIfAbsent(packet.getSourceAddress(), new HashMap<>());
             lastSequenceNumbers.putIfAbsent(packet.getSourceAddress(), (long) 0);
-            System.out.println(lastSequenceNumbers.toString());
-            System.out.println(queue.toString());
-            System.out.println(packet.getSequenceNumber());
-            System.out.println("Berekend: " + (lastSequenceNumbers.get(packet.getSourceAddress())));
             if (packet.getSequenceNumber() == lastSequenceNumbers.get(packet.getSourceAddress())) {
-                System.out.println("Komt door de eerste if");
                 if (((PrivateTextMessage) message).isEncrypted()) {
                     try {
                         msg = client.getEncryption().decryptMessage(((PrivateTextMessage) message).getMessage());
@@ -149,24 +144,11 @@ class Receiver implements Runnable {
 
         } else if (message instanceof FileTransferMessage) {
             FileTransferMessage fileTransfer = (FileTransferMessage) message;
-
             File file = Variables.DOWNLOADS_DIRECTORY.resolve(fileTransfer.getFileName()).toFile();
 
-            if (filePacketCount == 0) {
-                currentFile = new byte[fileTransfer.getFileLength()];
-            }
-
-            System.arraycopy(fileTransfer.getFragment(), 0, currentFile, fileTransfer.getOffset(), fileTransfer.getFragment().length);
-            filePacketCount++;
-
-            if (filePacketCount == fileTransfer.getTotalPackets()) {
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
-                fileOutputStream.write(currentFile);
-                fileOutputStream.flush();
-                fileOutputStream.close();
-                filePacketCount = 0;
-            }
-
+            RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
+            randomAccessFile.seek(fileTransfer.getOffset());
+            randomAccessFile.write(fileTransfer.getFragment());
             acknowledgePacket(packet);
         }
     }

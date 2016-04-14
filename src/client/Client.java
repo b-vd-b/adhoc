@@ -124,7 +124,8 @@ public class Client {
 
     }
     //todo: implement how to send a file privately
-    public void sendPrivateFileMessage(String nickname, File file) {
+    public void sendPrivateFileMessage(String nickname, File file) throws IOException {
+        sendPrivateTextMessage("I have sent you the file: " + file.getName(), nickname);
         new Thread(new FileTransferSender(mcSocket, packetManager, file, clientGUI.getClients().get(nickname))).start();
     }
 

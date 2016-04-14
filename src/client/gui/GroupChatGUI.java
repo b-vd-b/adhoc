@@ -161,7 +161,11 @@ public class GroupChatGUI extends JPanel {
                             "Error: Files can at most be "+MAXIMUM_FILE_SIZE/1000000+" MB large", "Error Massage",
                             JOptionPane.ERROR_MESSAGE);
                 } else {
-                    clientGUI.getClient().sendGroupFileMessage(file);
+                    try {
+                        clientGUI.getClient().sendGroupFileMessage(file);
+                    } catch (IOException e1) {
+                        e1.printStackTrace();
+                    }
                     addMessage(nickname, file.getName() + " has been sent!");
                 }
             }

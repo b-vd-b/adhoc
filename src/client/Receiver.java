@@ -8,11 +8,10 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import java.io.*;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.InvalidKeyException;
-import java.util.Arrays;
+import java.util.HashMap;
 
 class Receiver implements Runnable {
 
@@ -25,12 +24,16 @@ class Receiver implements Runnable {
 
     private byte[] currentFile;
     private int filePacketCount;
+    private HashMap<InetAddress, HashMap<Long, Packet>> queue;
+    private HashMap<InetAddress, Long> lastSequenceNumbers;
 
     Receiver(Client client, Sender sender, MulticastSocket socket, PacketManager packetManager) throws IOException {
         this.client = client;
         this.sender = sender;
         this.socket = socket;
         this.packetManager = packetManager;
+        this.queue = new HashMap<>();
+        this.lastSequenceNumbers = new HashMap<>();
     }
 
     @Override
@@ -48,7 +51,9 @@ class Receiver implements Runnable {
                 //if (datagramPacket.getAddress().equals(InetAddress.getByName("192.168.5.1"))||datagramPacket.getAddress().equals(InetAddress.getByName("192.168.5.2"))){
                 //     continue;
                 // }
-
+                if(Math.random()*10<1) {
+                    continue;
+                }
                 // Ignore all packets with invalid fields.
                 if (isInvalidPacket(packet)) {
                     continue;
@@ -102,18 +107,35 @@ class Receiver implements Runnable {
             client.getClientGUI().newGroupMessage(nickname, msg);
             acknowledgePacket(packet);
         } else if (message instanceof PrivateTextMessage) {
-            if (((PrivateTextMessage) message).isEncrypted()) {
-                try {
-                    msg = client.getEncryption().decryptMessage(((PrivateTextMessage) message).getMessage());
-                } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
-                    client.getClientGUI().newPrivateMessage("SYSTEM", "Received a message from: " + client.getDestinations().get(packet.getSourceAddress()) + " But unfortunately this message was malformed and can not be recovered");
-                    return;
+            queue.putIfAbsent(packet.getSourceAddress(), new HashMap<>());
+            lastSequenceNumbers.putIfAbsent(packet.getSourceAddress(), (long) 0);
+            System.out.println(lastSequenceNumbers.toString());
+            System.out.println(queue.toString());
+            System.out.println(packet.getSequenceNumber());
+            System.out.println("Berekend: " + (lastSequenceNumbers.get(packet.getSourceAddress())));
+            if (packet.getSequenceNumber() == lastSequenceNumbers.get(packet.getSourceAddress())) {
+                System.out.println("Komt door de eerste if");
+                if (((PrivateTextMessage) message).isEncrypted()) {
+                    try {
+                        msg = client.getEncryption().decryptMessage(((PrivateTextMessage) message).getMessage());
+                    } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+                        client.getClientGUI().newPrivateMessage("SYSTEM", "Received a message from: " + client.getDestinations().get(packet.getSourceAddress()) + " But unfortunately this message was malformed and can not be recovered");
+                        return;
+                    }
+                } else {
+                    msg = ((PrivateTextMessage) message).getMessage();
                 }
+                client.getClientGUI().newPrivateMessage(nickname, msg);
+                acknowledgePacket(packet);
+                lastSequenceNumbers.put(packet.getSourceAddress(), packet.getSequenceNumber() + packet.getLength());
             } else {
-                msg = ((PrivateTextMessage) message).getMessage();
+                HashMap<Long, Packet> tmp = queue.get(packet.getSourceAddress());
+                tmp.put(packet.getSequenceNumber(), packet);
+                queue.put(packet.getSourceAddress(), tmp);
             }
-            client.getClientGUI().newPrivateMessage(nickname, msg);
-            acknowledgePacket(packet);
+
+            checkPrivateQueue(packet.getSourceAddress());
+
         } else if (message instanceof GroupFileMessage){
 
         } else if (message instanceof PrivateFileMessage){
@@ -175,6 +197,33 @@ class Receiver implements Runnable {
 
     public void stopReceiver() {
         running = false;
+    }
+
+    private void checkPrivateQueue(InetAddress address) throws IOException {
+        if (!queue.get(address).isEmpty()) {
+            for (Long l : queue.get(address).keySet()) {
+                Packet packet = queue.get(address).get(l);
+                String msg;
+                if (lastSequenceNumbers.get(address) + packet.getLength() == packet.getSequenceNumber()) {
+                    if (((PrivateTextMessage) packet.getPayload()).isEncrypted()) {
+                        try {
+                            msg = client.getEncryption().decryptMessage(((PrivateTextMessage) packet.getPayload()).getMessage());
+                        } catch (InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+                            client.getClientGUI().newPrivateMessage("SYSTEM", "Received a message from: " + client.getDestinations().get(packet.getSourceAddress()) + " But unfortunately this message was malformed and can not be recovered");
+                            continue;
+                        }
+                    } else {
+                        msg = ((PrivateTextMessage) packet.getPayload()).getMessage();
+                    }
+                    client.getClientGUI().newPrivateMessage(client.getDestinations().get(packet.getSourceAddress()), msg);
+                    queue.get(packet.getSourceAddress()).remove(l);
+                    lastSequenceNumbers.put(packet.getSourceAddress(), l);
+                }
+            }
+            if (queue.get(address).containsKey(lastSequenceNumbers.get(address))) {
+                checkPrivateQueue(address);
+            }
+        }
     }
 
 }

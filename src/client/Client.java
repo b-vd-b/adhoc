@@ -120,15 +120,11 @@ public class Client {
         sender.sendMessage(destination, message);
     }
     //todo: implement how to send a file to the group
-    public void sendGroupFileMessage(File file) throws IOException {
-        for (InetAddress i : destinations.keySet()){
-            sendGroupTextMessage("Sending the file "+file.getName()+ " to "+destinations.get(i)+ " now");
-            new Thread(new FileTransferSender(mcSocket, packetManager, file, clientGUI.getClients().get(destinations.get(i)))).start();
-        }
-    }
+    public void sendGroupFileMessage(File file) {
 
-    public void sendPrivateFileMessage(String nickname, File file) throws IOException {
-        sendPrivateTextMessage("Sending the file "+file.getName()+ " now", nickname);
+    }
+    //todo: implement how to send a file privately
+    public void sendPrivateFileMessage(String nickname, File file) {
         new Thread(new FileTransferSender(mcSocket, packetManager, file, clientGUI.getClients().get(nickname))).start();
     }
 

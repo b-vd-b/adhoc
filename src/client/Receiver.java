@@ -144,50 +144,10 @@ class Receiver implements Runnable {
             checkPrivateQueue(packet.getSourceAddress());
 
         } else if (message instanceof GroupFileMessage){
-            GroupFileMessage groupFileMessage = (GroupFileMessage) message;
 
-            File file = Variables.DOWNLOADS_DIRECTORY.resolve(groupFileMessage.getFileName()).toFile();
-
-            if (filePacketCount == 0) {
-                currentFile = new byte[groupFileMessage.getFileLength()];
-            }
-
-            System.arraycopy(groupFileMessage.getFragment(), 0, currentFile, groupFileMessage.getOffset(), groupFileMessage.getFragment().length);
-            filePacketCount++;
-
-            if (filePacketCount == groupFileMessage.getTotalPackets()) {
-                client.getClientGUI().newGroupMessage(nickname, "I have received: "+file.getName());
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
-                fileOutputStream.write(currentFile);
-                fileOutputStream.flush();
-                fileOutputStream.close();
-                filePacketCount = 0;
-            }
-
-            acknowledgePacket(packet);
         } else if (message instanceof PrivateFileMessage){
-            PrivateFileMessage privateFileMessage= (PrivateFileMessage) message;
 
-            File file = Variables.DOWNLOADS_DIRECTORY.resolve(privateFileMessage.getFileName()).toFile();
-
-            if (filePacketCount == 0) {
-                currentFile = new byte[privateFileMessage.getFileLength()];
-            }
-
-            System.arraycopy(privateFileMessage.getFragment(), 0, currentFile, privateFileMessage.getOffset(), privateFileMessage.getFragment().length);
-            filePacketCount++;
-
-            if (filePacketCount == privateFileMessage.getTotalPackets()) {
-                client.getClientGUI().newPrivateMessage(nickname, "I have received: "+file.getName());
-                FileOutputStream fileOutputStream = new FileOutputStream(file);
-                fileOutputStream.write(currentFile);
-                fileOutputStream.flush();
-                fileOutputStream.close();
-                filePacketCount = 0;
-            }
-
-            acknowledgePacket(packet);
-        } /*else if (message instanceof FileTransferMessage) {
+        } else if (message instanceof FileTransferMessage) {
             FileTransferMessage fileTransfer = (FileTransferMessage) message;
 
             File file = Variables.DOWNLOADS_DIRECTORY.resolve(fileTransfer.getFileName()).toFile();
@@ -200,7 +160,6 @@ class Receiver implements Runnable {
             filePacketCount++;
 
             if (filePacketCount == fileTransfer.getTotalPackets()) {
-                client.getClientGUI().newPrivateMessage(nickname, "I have received: "+file.getName());
                 FileOutputStream fileOutputStream = new FileOutputStream(file);
                 fileOutputStream.write(currentFile);
                 fileOutputStream.flush();
@@ -209,7 +168,7 @@ class Receiver implements Runnable {
             }
 
             acknowledgePacket(packet);
-        }*/
+        }
     }
 
     private void acknowledgePacket(Packet packet) throws IOException {

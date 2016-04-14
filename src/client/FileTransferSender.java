@@ -2,6 +2,7 @@ package client;
 
 import datatype.FileTransferMessage;
 import datatype.Message;
+import datatype.PrivateFileMessage;
 import util.Checksum;
 
 import java.io.File;

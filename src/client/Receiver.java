@@ -47,6 +47,13 @@ class Receiver implements Runnable {
                 Packet packet = new Packet(buffer);
                 Message message = packet.getPayload();
 
+                if (Client.RANDOM_PACKET_DROP) {
+                    double chance = Math.random();
+                    if (chance < 0.2) {
+                        continue;
+                    }
+                }
+
                 //creating a pipeline
                 //if (datagramPacket.getAddress().equals(InetAddress.getByName("192.168.5.1"))||datagramPacket.getAddress().equals(InetAddress.getByName("192.168.5.2"))){
                 //     continue;

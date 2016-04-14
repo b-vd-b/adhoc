@@ -27,7 +27,7 @@ public class Variables {
     /**
      * The maximum amount of times a packet will be resend when a destination is not longer known.
      */
-    public static final int MAXIMUM_RETRANSMIT_ATTEMPTS = 3;
+    public static final int MAXIMUM_RETRANSMIT_ATTEMPTS = 5;
 
     /**
      * The address used to broadcast on.

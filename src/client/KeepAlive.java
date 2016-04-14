@@ -7,9 +7,7 @@ import util.Checksum;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.Inet4Address;
 import java.net.MulticastSocket;
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +48,7 @@ class KeepAlive implements Runnable {
                 for (Packet packet : packetManager.getUnacknowledgedPackets().keySet()) {
                     int attempts = packetManager.getUnacknowledgedPackets().get(packet);
 
-                    if (attempts == MAXIMUM_RETRANSMIT_ATTEMPTS && !client.getDestinations().containsKey(packet.getDestinationAddress())) {
+                    if (attempts == MAXIMUM_RETRANSMIT_ATTEMPTS || !client.getDestinations().containsKey(packet.getDestinationAddress())) {
                         toRemove.add(packet);
                     } else {
                         toIncrement.add(packet);
@@ -60,6 +58,10 @@ class KeepAlive implements Runnable {
 
                 if (toIncrement.size() > 0) {
                     for (Packet packet : toIncrement) {
+                        if (packetManager.getUnacknowledgedPackets().get(packet) == null) {
+                            continue;
+                        }
+
                         int attempts = packetManager.getUnacknowledgedPackets().get(packet);
                         packetManager.getUnacknowledgedPackets().put(packet, attempts + 1);
                     }

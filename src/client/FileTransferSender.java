@@ -39,8 +39,12 @@ public class FileTransferSender implements Runnable {
                     buffer = Arrays.copyOfRange(buffer, 0, read);
                 }
 
-                Message fileTransfer = new FileTransferMessage(file.getName(), offset, buffer, size, totalPackets, Checksum.getCrcValue(buffer));
+                byte[] fragment = new byte[buffer.length];
+                System.arraycopy(buffer, 0, fragment, 0, buffer.length );
+
+                Message fileTransfer = new FileTransferMessage(file.getName(), offset, fragment, size, totalPackets, Checksum.getCrcValue(buffer));
                 offset += read;
+
                 sender.sendMessage(destination, fileTransfer);
             }
         } catch (IOException e) {

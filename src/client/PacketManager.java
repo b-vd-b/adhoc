@@ -9,19 +9,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 class PacketManager {
 
     private HashMap<InetAddress, List<Packet>> receivedPackets;
     private HashMap<InetAddress, List<Packet>> sentPackets;
     private HashMap<InetAddress, Long> sequenceNumbers;
-    private HashMap<Packet, Integer> unacknowledgedPackets;
+    private Map<Packet, Integer> unacknowledgedPackets;
 
     PacketManager() {
         this.receivedPackets = new HashMap<>();
         this.sentPackets = new HashMap<>();
         this.sequenceNumbers = new HashMap<>();
-        this.unacknowledgedPackets = new HashMap<>();
+        this.unacknowledgedPackets = new ConcurrentHashMap<>();
     }
 
     void addReceivedPacket(Packet packet) {

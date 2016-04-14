@@ -44,6 +44,7 @@ class KeepAlive implements Runnable {
                 }
 
                 List<Packet> toRemove = new ArrayList<>();
+                List<Packet> toIncrement = new ArrayList<>();
 
                 // Retransmit unacknowledged packets up to three times.
                 for (Packet packet : packetManager.getUnacknowledgedPackets().keySet()) {
@@ -52,13 +53,22 @@ class KeepAlive implements Runnable {
                     if (attempts == MAXIMUM_RETRANSMIT_ATTEMPTS && !client.getDestinations().containsKey(packet.getDestinationAddress())) {
                         toRemove.add(packet);
                     } else {
-                        packetManager.getUnacknowledgedPackets().put(packet, attempts + 1);
+                        toIncrement.add(packet);
                         mcSocket.send(packet.makeDatagramPacket());
                     }
                 }
 
-                for (Packet packet : toRemove) {
-                    packetManager.getUnacknowledgedPackets().remove(packet);
+                if (toIncrement.size() > 0) {
+                    for (Packet packet : toIncrement) {
+                        int attempts = packetManager.getUnacknowledgedPackets().get(packet);
+                        packetManager.getUnacknowledgedPackets().put(packet, attempts + 1);
+                    }
+                }
+
+                if (toRemove.size() > 0) {
+                    for (Packet packet : toRemove) {
+                        packetManager.getUnacknowledgedPackets().remove(packet);
+                    }
                 }
             } catch (InterruptedException | IOException ex) {
                 ex.printStackTrace();

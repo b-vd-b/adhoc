@@ -1,7 +1,9 @@
 package client;
 
 import datatype.BroadcastMessage;
+import datatype.Message;
 import datatype.Packet;
+import util.Checksum;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -65,7 +67,8 @@ class KeepAlive implements Runnable {
     }
 
     private DatagramPacket makeBroadcastPacket() throws IOException {
-        Packet packet = new Packet(Client.LOCAL_ADDRESS, Client.LOCAL_ADDRESS, -1 , 3, new BroadcastMessage(nickname, client.getDestinations(), client.getEncryptionKeys(), client.getNextHop()));
+        Message broadcastMessage = new BroadcastMessage(nickname, client.getDestinations(), client.getEncryptionKeys(), client.getNextHop());
+        Packet packet = new Packet(Client.LOCAL_ADDRESS, Client.LOCAL_ADDRESS, -1 , 3, broadcastMessage, Checksum.getMessageChecksum(broadcastMessage));
         return packet.makeDatagramPacket();
     }
 }

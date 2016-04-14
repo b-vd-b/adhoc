@@ -1,6 +1,5 @@
 package datatype;
 
-import client.Client;
 import util.Variables;
 
 import java.io.*;
@@ -15,13 +14,15 @@ public class Packet implements Serializable {
     private long sequenceNumber;
     private int timeToLive;
     private Message payload;
+    private long checksum;
 
-    public Packet(InetAddress sourceAddress, InetAddress destinationAddress, long sequenceNumber, int timeToLive, Message payload) {
+    public Packet(InetAddress sourceAddress, InetAddress destinationAddress, long sequenceNumber, int timeToLive, Message payload, long checksum) {
         this.sourceAddress = sourceAddress;
         this.destinationAddress = destinationAddress;
         this.sequenceNumber = sequenceNumber;
         this.timeToLive = timeToLive;
         this.payload = payload;
+        this.checksum = checksum;
     }
 
     public Packet(byte[] data) throws IOException, ClassNotFoundException {
@@ -33,6 +34,7 @@ public class Packet implements Serializable {
         this.sequenceNumber = packet.getSequenceNumber();
         this.timeToLive = packet.getTimeToLive();
         this.payload = packet.getPayload();
+        this.checksum = packet.getChecksum();
     }
 
     public InetAddress getSourceAddress() {
@@ -57,6 +59,10 @@ public class Packet implements Serializable {
 
     public void decreaseTimeToLive() {
         timeToLive--;
+    }
+
+    public long getChecksum() {
+        return checksum;
     }
 
     public int getLength() throws IOException {

@@ -1,5 +1,11 @@
 package util;
 
+import datatype.Message;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.zip.CRC32;
 
 public class Checksum {
@@ -12,6 +18,21 @@ public class Checksum {
 
     public static long getCrcValue(String message) {
         return getCrcValue(message.getBytes());
+    }
+
+    public static long getMessageChecksum(Message message) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ObjectOutput objectOutput;
+
+        try {
+            objectOutput = new ObjectOutputStream(byteArrayOutputStream);
+            objectOutput.writeObject(message);
+            return getCrcValue(byteArrayOutputStream.toByteArray());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return -1;
     }
 
 }

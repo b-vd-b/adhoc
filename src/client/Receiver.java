@@ -65,10 +65,9 @@ class Receiver implements Runnable {
                     continue;
                 }
 
-                if (message instanceof FileTransferMessage) {
-                    if (Checksum.getCrcValue(((FileTransferMessage) message).getFragment()) != ((FileTransferMessage) message).getChecksum()) {
-                        continue;
-                    }
+                // Packet payload changed during propagation, so drop it.
+                if (packet.getChecksum() != Checksum.getMessageChecksum(message)) {
+                    continue;
                 }
 
                 // Ignore packets that have been received earlier and are retransmitted by neighbours.
@@ -147,7 +146,7 @@ class Receiver implements Runnable {
         long sequenceNumber = packet.getSequenceNumber();
         long acknowledgementNumber = packet.getSequenceNumber() + packet.getLength();
         Message message = new AckMessage(acknowledgementNumber);
-        Packet acknowledgementPacket = new Packet(Client.LOCAL_ADDRESS, packet.getSourceAddress(), sequenceNumber, 3, message);
+        Packet acknowledgementPacket = new Packet(Client.LOCAL_ADDRESS, packet.getSourceAddress(), sequenceNumber, 3, message, Checksum.getMessageChecksum(message));
 
         sender.sendDatagramPacket(acknowledgementPacket.makeDatagramPacket());
     }

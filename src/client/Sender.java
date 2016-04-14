@@ -2,6 +2,7 @@ package client;
 
 import datatype.Message;
 import datatype.Packet;
+import util.Checksum;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -19,7 +20,7 @@ class Sender {
     }
 
     void sendMessage(InetAddress destination, Message payload) throws IOException {
-        Packet packet = new Packet(Client.LOCAL_ADDRESS, destination, packetManager.getSequenceNumber(destination), 3, payload);
+        Packet packet = new Packet(Client.LOCAL_ADDRESS, destination, packetManager.getSequenceNumber(destination), 3, payload, Checksum.getMessageChecksum(payload));
         packetManager.addSentPacket(packet);
         sendDatagramPacket(packet.makeDatagramPacket());
     }

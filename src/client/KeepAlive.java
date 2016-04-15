@@ -20,6 +20,7 @@ class KeepAlive implements Runnable {
     private String nickname;
     private Client client;
     private PacketManager packetManager;
+    private boolean running;
 
     /**
      * Sending a packet to let other clients know that this client is still in the network and reachable.
@@ -30,11 +31,12 @@ class KeepAlive implements Runnable {
         this.nickname = nickname;
         this.client = client;
         this.packetManager = packetManager;
+        this.running = true;
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (running) {
             try {
                 for (int i = 0; i < 5; i++) {
                     mcSocket.send(makeBroadcastPacket());

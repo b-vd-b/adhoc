@@ -3,9 +3,6 @@ package util;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/**
- * Created by bvdb on 13-4-2016.
- */
 public class Variables {
 
 

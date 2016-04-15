@@ -11,13 +11,13 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.util.Arrays;
 
-public class FileTransferSender implements Runnable {
+class FileTransferSender implements Runnable {
 
     private File file;
     private InetAddress destination;
     private Sender sender;
 
-    public FileTransferSender(MulticastSocket multicastSocket, PacketManager packetManager, File file, InetAddress destination) {
+    FileTransferSender(MulticastSocket multicastSocket, PacketManager packetManager, File file, InetAddress destination) {
         this.file = file;
         this.destination = destination;
         sender = new Sender(multicastSocket, packetManager);

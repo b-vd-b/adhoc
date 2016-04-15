@@ -15,15 +15,12 @@ import java.util.HashMap;
 
 class Receiver implements Runnable {
 
-    private boolean running = true;
-
     private Client client;
     private Sender sender;
     private MulticastSocket socket;
     private PacketManager packetManager;
+    private boolean running;
 
-    private byte[] currentFile;
-    private int filePacketCount;
     private HashMap<InetAddress, HashMap<Long, Packet>> queue;
     private HashMap<InetAddress, Long> lastSequenceNumbers;
 
@@ -34,6 +31,7 @@ class Receiver implements Runnable {
         this.packetManager = packetManager;
         this.queue = new HashMap<>();
         this.lastSequenceNumbers = new HashMap<>();
+        this.running = true;
     }
 
     @Override
@@ -103,7 +101,6 @@ class Receiver implements Runnable {
     }
 
     private void parsePacket(Packet packet) throws IOException {
-        // TODO: Add payload parsing.
         Message message = packet.getPayload();
         String nickname = client.getDestinations().get(packet.getSourceAddress());
         String msg;
@@ -137,10 +134,6 @@ class Receiver implements Runnable {
             }
 
             checkPrivateQueue(packet.getSourceAddress());
-
-        } else if (message instanceof GroupFileMessage){
-
-        } else if (message instanceof PrivateFileMessage){
 
         } else if (message instanceof FileTransferMessage) {
             FileTransferMessage fileTransfer = (FileTransferMessage) message;
@@ -182,10 +175,6 @@ class Receiver implements Runnable {
         if (packet.getTimeToLive() > 0) {
             sender.sendDatagramPacket(packet.makeDatagramPacket());
         }
-    }
-
-    public void stopReceiver() {
-        running = false;
     }
 
     private void checkPrivateQueue(InetAddress address) throws IOException {

@@ -16,10 +16,6 @@ public class Checksum {
         return crc32.getValue();
     }
 
-    public static long getCrcValue(String message) {
-        return getCrcValue(message.getBytes());
-    }
-
     public static long getMessageChecksum(Message message) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ObjectOutput objectOutput;

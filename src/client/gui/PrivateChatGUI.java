@@ -1,7 +1,5 @@
 package client.gui;
 
-import util.Variables;
-
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -14,27 +12,19 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.Calendar;
-import java.util.Date;
 
 import static java.awt.GridBagConstraints.HORIZONTAL;
 import static java.awt.GridBagConstraints.NONE;
 import static util.Variables.MAXIMUM_FILE_SIZE;
 
-/**
- * Created by bvdb on 6-4-2016.
- */
-public class PrivateChatGUI extends JPanel {
+class PrivateChatGUI extends JPanel {
 
     private String nickname;
     private ClientGUI clientGUI;
 
     private JLabel label;
     private JFileChooser fileChooser;
-    private JTextPane textArea;
-    private JButton sendButton;
-    private JButton fileButton;
     private JTextField inputField;
     private DefaultStyledDocument document = new DefaultStyledDocument();
     private StyleContext context = new StyleContext();
@@ -101,7 +91,7 @@ public class PrivateChatGUI extends JPanel {
             label.setText(msg.length()+"/140");
             warn();
         }
-        public void warn() {
+        void warn() {
             if ((inputField.getText().length())>140){
                 JOptionPane.showMessageDialog(null,
                         "Error: Please enter 140 or less characters", "Error Massage",
@@ -109,13 +99,13 @@ public class PrivateChatGUI extends JPanel {
             }
         }
     }
-    public PrivateChatGUI(String nickname, ClientGUI clientGUI){
+    PrivateChatGUI(String nickname, ClientGUI clientGUI){
         this.nickname = nickname;
         this.clientGUI = clientGUI;
         setLayout(new BorderLayout());
 
         //create and add the text area which cannot be edited
-        textArea = new JTextPane(document);
+        JTextPane textArea = new JTextPane(document);
         textArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(textArea);
         add(scrollPane,BorderLayout.CENTER);
@@ -129,11 +119,11 @@ public class PrivateChatGUI extends JPanel {
 
         //create the label, send and file send button
         label = new JLabel("0/140");
-        sendButton = new JButton("SEND MESSAGE");
+        JButton sendButton = new JButton("SEND MESSAGE");
         sendButton.setSize(50,10);
         sendButton.addActionListener(new SendMessageActionListener());
         fileChooser = new JFileChooser();
-        fileButton = new JButton("SEND FILE");
+        JButton fileButton = new JButton("SEND FILE");
         fileButton.setSize(50,10);
         fileButton.addActionListener(new SendFileActionListener());
 
@@ -154,7 +144,7 @@ public class PrivateChatGUI extends JPanel {
 
     }
 
-    public void addMessage(String nickname, String message){
+    void addMessage(String nickname, String message){
         Calendar calendar = Calendar.getInstance();
         String time = ""+calendar.get(Calendar.HOUR_OF_DAY)+":"+calendar.get(Calendar.MINUTE);
 

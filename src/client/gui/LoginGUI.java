@@ -9,16 +9,10 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-/**
- * Created by bvdb on 7-4-2016.
- */
 public class LoginGUI extends JDialog implements ActionListener, PropertyChangeListener {
 
-    private String nickname;
     private JTextField inputField;
     private String btn1 = "Login";
-    private String btn2 = "Cancel";
-    private String question = "What nickname would you like to use?";
     private JOptionPane optionPane;
 
     public LoginGUI(){
@@ -27,8 +21,10 @@ public class LoginGUI extends JDialog implements ActionListener, PropertyChangeL
         setMinimumSize(new Dimension(400,200));
         setLocationRelativeTo(null);
         inputField = new JTextField(10);
+        String question = "What nickname would you like to use?";
         Object[] array = {question, inputField};
-        Object[] options = {btn1,btn2};
+        String btn2 = "Cancel";
+        Object[] options = {btn1, btn2};
         optionPane = new JOptionPane(array, JOptionPane.QUESTION_MESSAGE,
                 JOptionPane.YES_NO_OPTION, null, options, options[0]);
         setContentPane(optionPane);
@@ -41,10 +37,6 @@ public class LoginGUI extends JDialog implements ActionListener, PropertyChangeL
 
         setVisible(true);
         pack();
-    }
-
-    public String getNickname(){
-        return nickname;
     }
 
     @Override
@@ -69,9 +61,9 @@ public class LoginGUI extends JDialog implements ActionListener, PropertyChangeL
             }
 
             if(btn1.equals(value)){
-                nickname = inputField.getText();
+                String nickname = inputField.getText();
                 if(nickname.length()>0){
-                    JOptionPane.showMessageDialog(this, "Your nickname will be: "+nickname);
+                    JOptionPane.showMessageDialog(this, "Your nickname will be: "+ nickname);
                     new Client(nickname);
                     exit();
 

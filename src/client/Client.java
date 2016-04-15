@@ -17,10 +17,10 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static util.Variables.MULTICAST_ADDRESS;
 import static util.Variables.PORT;
@@ -28,11 +28,10 @@ import static util.Variables.PORT;
 public class Client {
 
 
-    private static final boolean DEBUG_MODE = false;
+    private static final boolean DEBUG_MODE = true;
     static final boolean RANDOM_PACKET_DROP = false;
 
     static InetAddress LOCAL_ADDRESS;
-    private static InetAddress GROUP_CHAT_ADDRESS;
     private static PacketManager packetManager;
     private static Sender sender;
     private ClientGUI clientGUI;
@@ -92,7 +91,6 @@ public class Client {
             LOCAL_ADDRESS = InetAddress.getLocalHost();
         }
 
-        GROUP_CHAT_ADDRESS = InetAddress.getByName("192.168.5.0");
         new LoginGUI();
     }
 
@@ -101,7 +99,7 @@ public class Client {
     }
 
     public void sendGroupTextMessage(String contents) throws IOException {
-        Message message = new GroupTextMessage(contents, "");
+        Message message = new GroupTextMessage(contents);
         for (InetAddress destination : clientGUI.getClients().values()) {
             sender.sendMessage(destination, message);
         }
@@ -115,15 +113,11 @@ public class Client {
             clientGUI.newPrivateMessage("SYSTEM", "Sorry something went wrong, please try again later");
             return;
         }
-        Message message = new PrivateTextMessage(true, encryptedMessage, "");
+        Message message = new PrivateTextMessage(true, encryptedMessage);
         InetAddress destination = clientGUI.getClients().get(nickname);
         sender.sendMessage(destination, message);
     }
-    //todo: implement how to send a file to the group
-    public void sendGroupFileMessage(File file) {
 
-    }
-    //todo: implement how to send a file privately
     public void sendPrivateFileMessage(String nickname, File file) throws IOException {
         sendPrivateTextMessage("I have sent you the file: " + file.getName(), nickname);
         new Thread(new FileTransferSender(mcSocket, packetManager, file, clientGUI.getClients().get(nickname))).start();
@@ -145,52 +139,29 @@ public class Client {
         encryptionKeys.put(address, message.getPublicKeys().get(address));
 
         //Add the destinations of this neighbour to our own destinations with the next hop set to the neighbour
-        for (InetAddress e : message.getDestinations().keySet()) {
-            if (!destinations.containsKey(e)) {
-                if (!e.equals(LOCAL_ADDRESS)) {
-                    if (!message.getNextHop().get(e).equals(LOCAL_ADDRESS)) {
-                        destinations.put(e, message.getDestinations().get(e));
-                        nextHop.put(e, address);
-                        clientGUI.addClient(message.getDestinations().get(e), e);
-                        encryptionKeys.put(e, message.getPublicKeys().get(e));
-                    }
-                }
-            }
-        }
+        message.getDestinations().keySet().stream().filter(e -> !destinations.containsKey(e)).filter(e -> !e.equals(LOCAL_ADDRESS)).filter(e -> !message.getNextHop().get(e).equals(LOCAL_ADDRESS)).forEach(e -> {
+            destinations.put(e, message.getDestinations().get(e));
+            nextHop.put(e, address);
+            clientGUI.addClient(message.getDestinations().get(e), e);
+            encryptionKeys.put(e, message.getPublicKeys().get(e));
+        });
 
         //Delete the neighbours that aren't reachable anymore through this neighbour if there are any
-        List<InetAddress> localDestinations = new ArrayList<>();
-        for (InetAddress e : nextHop.keySet()) {
-            if (nextHop.get(e).equals(address)) {
-                localDestinations.add(e);
-            }
-        }
+        List<InetAddress> localDestinations = nextHop.keySet().stream().filter(e -> nextHop.get(e).equals(address)).collect(Collectors.toList());
 
-        for (InetAddress e : localDestinations) {
-            if (!message.getDestinations().containsKey(e)) {
-                clientGUI.removeClient(destinations.get(e));
-                destinations.remove(e);
-                nextHop.remove(e);
-                encryptionKeys.remove(e);
-            }
-        }
+        localDestinations.stream().filter(e -> !message.getDestinations().containsKey(e)).forEach(e -> {
+            clientGUI.removeClient(destinations.get(e));
+            destinations.remove(e);
+            nextHop.remove(e);
+            encryptionKeys.remove(e);
+        });
     }
 
     public synchronized void updateNeighbours() {
         //Put all the dropped neighbours in a list
-        List<InetAddress> droppedNeighbours = new ArrayList<>();
-        for (InetAddress e : neighbours.keySet()) {
-            if (!lastRoundNeighbours.containsKey(e)) {
-                droppedNeighbours.add(e);
-            }
-        }
+        List<InetAddress> droppedNeighbours = neighbours.keySet().stream().filter(e -> !lastRoundNeighbours.containsKey(e)).collect(Collectors.toList());
         //Remove all the destinations that were associated with the dropped neighbours
-        List<InetAddress> toRemoveDestinations = new ArrayList<>();
-        for (InetAddress e : destinations.keySet()) {
-            if (droppedNeighbours.contains(e) || droppedNeighbours.contains(nextHop.get(e))) {
-                toRemoveDestinations.add(e);
-            }
-        }
+        List<InetAddress> toRemoveDestinations = destinations.keySet().stream().filter(e -> droppedNeighbours.contains(e) || droppedNeighbours.contains(nextHop.get(e))).collect(Collectors.toList());
         for (InetAddress e : toRemoveDestinations) {
             clientGUI.removeClient(destinations.get(e));
             destinations.remove(e);
@@ -216,7 +187,7 @@ public class Client {
         return encryption;
     }
 
-    public HashMap<InetAddress, InetAddress> getNextHop() {
+    HashMap<InetAddress, InetAddress> getNextHop() {
         return nextHop;
     }
 }

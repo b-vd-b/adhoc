@@ -6,24 +6,17 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.net.InetAddress;
 import java.util.HashMap;
 
 import static util.Variables.PROGRAM_NAME;
 
-/**
- * Created by bvdb on 6-4-2016.
- */
 public class ClientGUI extends JPanel {
 
     private HashMap<String,InetAddress> clients;
     private DefaultListModel<String> clientListModel;
     private JList<String> clientList;
-    private JFrame mainChat;
     private JTabbedPane chatPane;
-    private JScrollPane scrollPane;
-    private JSplitPane splitPane;
 
     private Client client;
     private String nickname;
@@ -33,7 +26,7 @@ public class ClientGUI extends JPanel {
 
     private class ClientSelectionListener extends MouseAdapter {
         private ClientGUI clientGUI;
-        public ClientSelectionListener(ClientGUI clientGUI) {
+        ClientSelectionListener(ClientGUI clientGUI) {
             super();
             this.clientGUI = clientGUI;
         }
@@ -61,7 +54,7 @@ public class ClientGUI extends JPanel {
         this.client = client;
         this.clients = new HashMap<>();
         this.privateChatTabs = new HashMap<>();
-        mainChat = new JFrame(PROGRAM_NAME);
+        JFrame mainChat = new JFrame(PROGRAM_NAME);
         mainChat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainChat.setMinimumSize(new Dimension(800, 600));
         mainChat.setSize(800,600);
@@ -78,11 +71,11 @@ public class ClientGUI extends JPanel {
         clientList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 
-        scrollPane = new JScrollPane(clientList);
+        JScrollPane scrollPane = new JScrollPane(clientList);
         scrollPane.setMinimumSize(new Dimension(100,0));
         scrollPane.setPreferredSize(new Dimension(100,600));
 
-        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, chatPane, scrollPane);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, chatPane, scrollPane);
         splitPane.setResizeWeight(1.0);
 
 
@@ -93,7 +86,7 @@ public class ClientGUI extends JPanel {
         mainChat.pack();
 
     }
-    public String getNickname() { return nickname; }
+    String getNickname() { return nickname; }
     public Client getClient(){
         return client;
     }
@@ -101,7 +94,6 @@ public class ClientGUI extends JPanel {
         return clients;
     }
     public void newGroupMessage(String nickname, String message){
-        //todo: need to check if this selection works
         groupChatTab.addMessage(nickname, message);
     }
 
@@ -114,22 +106,6 @@ public class ClientGUI extends JPanel {
             chatPane.setSelectedComponent(privateChatGUI);
         }
         privateChatTabs.get(nickname).addMessage(nickname, message);
-    }
-
-    public void newGroupFileMessage(String nickname, File file){
-        //todo: need to check if this selection works
-        groupChatTab.addMessage(nickname, "has uploaded "+file.getName());
-    }
-
-    public void newPrivateFileMessage(String nickname, File file){
-        if(!privateChatTabs.containsKey(nickname)){
-            PrivateChatGUI privateChatGUI = new PrivateChatGUI(nickname, this);
-            privateChatTabs.put(nickname, privateChatGUI);
-
-            chatPane.addTab(nickname, privateChatGUI);
-            chatPane.setSelectedComponent(privateChatGUI);
-        }
-        privateChatTabs.get(nickname).addMessage(nickname, "has uploaded "+file.getName());
     }
 
     public void addClient(String nickname, InetAddress address){
